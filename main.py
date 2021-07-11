@@ -3,6 +3,7 @@
 
 Reunir información sobre footprint wifi y en base a la información predecir.
 Alumno: Rafael Farias.
+
 """
 import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
@@ -115,17 +116,16 @@ print(Manzana_Precensal)
 # TODO: Preguntarle al profe si es necesaria la función.
 df_stgo = df_stgo.join(df_oui).where(df_stgo["Id_fabricante"] == df_oui["_c0"])
 df_stgo = df_stgo.drop('_c0')
+df_stgo = df_stgo.withColumnRenamed('_c1', 'Fabricante')
 print('El dataframe con el primer future es el siguiente:\n')
 df_stgo.show(truncate=False)
 
 # Información geográfica (ciudad, comuna, zona censal, manzana)
 # Necesito el df en pandas para trabajarlo.
 df_manzana = pd.DataFrame(Manzana_Precensal)
-df_manzana.head()
 
 # Transformo a string la columna geometry.
 df_manzana['str_geom'] = df_manzana.geometry.apply(lambda x: wkt.dumps(x))
-df_manzana.head()
 
 # Le hago drop a la columna geometry.
 # df_manzana.drop('geometry')
