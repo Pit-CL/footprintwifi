@@ -145,6 +145,7 @@ print(Manzana_Precensal)
 # Fabricante.
 # Uno los df_stgo y df_oui a través de un join y además le solicito que lo haga
 # en donde Id_fabricante sea idéntico a _c0 del df_oui.
+# TODO: Preguntarle al profe si es necesaria la función.
 df_stgo = df_stgo.join(df_oui).where(df_stgo["Id_fabricante"] == df_oui["_c0"])
 df_stgo.show()
 
