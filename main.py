@@ -135,3 +135,4 @@ df_manzana.head()
 # names = ["Capital", "State"]
 # new_df = pd.DataFrame(data, columns=names)
 # TODO: Tengo creado el string ahora debo separarlo para obtener 4 columnas.
+# TODO: Revisar si existe otra manera de relacionar geometry.
