@@ -54,12 +54,6 @@ print('El dataframe que contiene todos los csv es el siguiente:\n')
 df_unidos.show(truncate=False)
 df_unidos = df_unidos.drop('updated', 'data')
 
-# TODO: Preguntarle al profe si es que debo hacer un drop o no.
-# Elimino las duplicadas según bssid
-# df_all = df_2017_2018_2019.dropDuplicates(['bssid'])
-# print('bssid únicas : '+str(df_all.count()))
-# df_all.show(truncate=False)
-
 # Ahora creo el df solo con la RM según coordenadas de google maps.
 df_stgo = df_unidos.filter((df_unidos.lat >= -33.65) &
                            (df_unidos.lat <= -33.28) &
@@ -131,14 +125,6 @@ df_manzana = pd.DataFrame(Manzana_Precensal)
 df_manzana['str_geom'] = df_manzana.geometry.apply(lambda x: wkt.dumps(x))
 
 # FIXME: Debo corregir este lambda porque no funciona.
-df_manzana.str_geom.apply(lambda x: pd.Series(str(x).split(" ")))
-
-# Le hago drop a la columna geometry.
-# df_manzana.drop('geometry')
-
-# split_data = df_manzana["str_geom"].str.split(" ")
-# data = split_data.to_list()
-# names = ["Capital", "State"]
-# new_df = pd.DataFrame(data, columns=names)
+# df_manzana.str_geom.apply(lambda x: pd.Series(str(x).split(" ")))
 # TODO: Tengo creado el string ahora debo separarlo para obtener 4 columnas.
 # TODO: Revisar si existe otra manera de relacionar geometry.
