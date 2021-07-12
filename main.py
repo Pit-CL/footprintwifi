@@ -2,8 +2,12 @@
 """Tarea BigData Analytics.
 
 Reunir información sobre footprint wifi y en base a la información predecir.
-Alumno: Rafael Farias.
+Se recomienda instalar los requerimientos ya que son librerías que suelen
+generar conflictos por sus versiones.
+Además se debe tener instalado spark si se desea ejecutar en una máquina local.
 
+Alumno: Rafael Farias.
+Profesor: Oscar Peredo.
 """
 import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
@@ -125,6 +129,9 @@ df_manzana = pd.DataFrame(Manzana_Precensal)
 
 # Transformo a string la columna geometry.
 df_manzana['str_geom'] = df_manzana.geometry.apply(lambda x: wkt.dumps(x))
+
+# FIXME: Debo corregir este lambda porque no funciona.
+df_manzana.str_geom.apply(lambda x: pd.Series(str(x).split(" ")))
 
 # Le hago drop a la columna geometry.
 # df_manzana.drop('geometry')
