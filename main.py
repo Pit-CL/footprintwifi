@@ -45,10 +45,9 @@ df_2017 = df_2017.drop('range', 'created')
 # Ahora ordeno las columnas para que todas tengan el mismo orden.
 df_2017 = df_2017.select('id', 'bssid', 'lat', 'lon', 'updated', 'data')
 
-df_unidos = (df_2017.union(df_2018)).union(df_2019)
+df_unidos = ((df_2017.union(df_2018)).union(df_2019)).distinct()
 print('El dataframe que contiene todos los csv es el siguiente:\n')
 df_unidos.show(truncate=False)
-
 df_unidos = df_unidos.drop('updated', 'data')
 
 # TODO: Preguntarle al profe si es que debo hacer un drop o no.
@@ -66,8 +65,8 @@ df_stgo = df_unidos.filter((df_unidos.lat >= -33.65) &
 # Credo el df final de Stgo.
 # Separo la columna bssid en una que contendrá Media_mac y otra que contendrá
 # Id_fabricante.
-df_stgo = df_stgo.withColumn('Media_mac', expr('substring(bssid,1,length(bssid)-6)')).withColumn(
-    'Id_fabricante', expr('substring(bssid,7,length(bssid)-6)')).drop('bssid')
+df_stgo = df_stgo.withColumn('Id_fabricante', expr('substring(bssid,1,length(bssid)-6)')).withColumn(
+    'Media_mac', expr('substring(bssid,7,length(bssid)-6)')).drop('bssid')
 print('El dataframe de Santiago es el siguiente:\n')
 df_stgo.show()
 
