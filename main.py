@@ -12,7 +12,7 @@ wifi_XXXX.csv en donde XXXX corresponde al año , debes descargar el archivo
 out.txt desde http://standards-oui.ieee.org/oui/oui.txt
 
 Dentro del script no olvides indicar la ruta al path que contiene los archivos
-que descargaste, la variable dentro del script está nombrada como FilePath
+que descargaste, la variable dentro del script está nombrada como FilePath.
 
 Todos estos archivos deben estar guardados en la misma carpeta.
 Por último recuerda que si lo corres en tu máquina local debes tener habilitado
