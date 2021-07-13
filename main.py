@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
 """Tarea BigData Analytics.
 
-Reunir información sobre footprint wifi y en base a la información predecir.
-Se recomienda instalar los requerimientos ya que son librerías que suelen
-generar conflictos por sus versiones.
-Además se debe tener instalado spark si se desea ejecutar en una máquina local.
+Reunir información sobre footprint wifi y en base a la información predecir
+por ejemplo que Fabricante se instalará en una cierta zona.
+Se recomienda instalar los requerimientos en un entorno aislado ya que son
+librerías que suelen generar conflictos por sus versiones.
+
+Debes descargar desde https://www.mylnikov.org/download los últimos archivos
+del año 2017, 2018 y 2019. Luego debes nombrar los tres archivos como
+wifi_XXXX.csv en donde XXXX corresponde al año , debes descargar el archivo
+out.txt desde http://standards-oui.ieee.org/oui/oui.txt
+
+Todos estos archivos deben estar guardados en la misma carpeta.
+Por último recuerda que si lo corres en tu máquina local debes tener habilitado
+Spark.
 
 Alumno: Rafael Farias.
 Profesor: Oscar Peredo.
@@ -93,7 +102,6 @@ df_oui.show(truncate=False)
 # Ahora me preocupo de revisar los archivos de geolocalización.
 # En el Archivo Manzana_Precensal.shp se encuentra toda la info solicitada
 # salvo por la ciudad.
-# TODO: Falta agregar ciudad y ver si puedo trabajar solo con stgo.
 Manzana_Precensal = gpd.read_file('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
                                   'sprint1/data/'
                                   'Manzana_Precensal.shp')
