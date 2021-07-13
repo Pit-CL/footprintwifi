@@ -128,3 +128,7 @@ df_manzana['str_geom'] = df_manzana.geometry.apply(lambda x: wkt.dumps(x))
 # df_manzana.str_geom.apply(lambda x: pd.Series(str(x).split(" ")))
 # TODO: Tengo creado el string ahora debo separarlo para obtener 4 columnas.
 # TODO: Revisar si existe otra manera de relacionar geometry.
+str_limpio = (df_manzana['str_geom'].str.replace(
+    '(', '').str.replace(')', '').str.replace('POLYGON', '')).to_list()
+str_limpio = pd.DataFrame(str_limpio)
+df_manzana2 = pd.merge([str_limpio, df_manzana], right=True)
