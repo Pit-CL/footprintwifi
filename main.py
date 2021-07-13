@@ -13,7 +13,7 @@ import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
-from pyspark.sql.functions import substring, expr
+from pyspark.sql.functions import substring, expr, countDistinct
 import pandas as pd
 from shapely import wkt
 findspark.init()  # Con este no me tira error de JVM.
@@ -110,7 +110,6 @@ print(Manzana_Precensal)
 # Fabricante.
 # Uno los df_stgo y df_oui a través de un join y además le solicito que lo haga
 # en donde Id_fabricante sea idéntico a _c0 del df_oui.
-# TODO: Preguntarle al profe si es necesaria la función.
 df_stgo = df_stgo.join(df_oui).where(df_stgo["Id_fabricante"] == df_oui["_c0"])
 df_stgo = df_stgo.drop('_c0')
 df_stgo = df_stgo.withColumnRenamed('_c1', 'Fabricante')
@@ -118,7 +117,44 @@ print('El dataframe con el primer future es el siguiente:\n')
 df_stgo.show(truncate=False)
 
 # Información geográfica (ciudad, comuna, zona censal, manzana)
-# Necesito el df en pandas para trabajarlo.
-df_manzana = pd.DataFrame(Manzana_Precensal)
-# TODO: Revisar geopandas para poder ver el tema geometry con join
+# Transformo df_stgo a pandas para poder trabajarlo con geopandas
+df_stgo_pandas = df_stgo.toPandas()
+
+# Ahora creo un geopandas para indicarle los points de lat y lon.
+df_stgo_geop = gpd.GeoDataFrame(df_stgo_pandas,
+                                geometry=gpd.points_from_xy
+                                (df_stgo_pandas.lon, df_stgo_pandas.lat))
+
+df_stgo_geop = df_stgo_geop.drop(columns=['lat', 'lon'])
+
+# Le indico el CRS para que quede igual a Manzana_Precensal.
+df_stgo_geop.crs = 'EPSG:4674'
+
+# Ahora hago un join con geopandas entre df_stgo_geop y Manzana_Precensal.
+join_stgo_manzana = gpd.sjoin(df_stgo_geop, Manzana_Precensal, op='within',
+                              how='inner')
+
+join_stgo_manzana = join_stgo_manzana.drop(columns=['index_right'])
+join_stgo_manzana['str_geom'] = join_stgo_manzana.geometry.apply(lambda x: wkt.
+                                                                 dumps(x))
+join_stgo_manzana = (join_stgo_manzana.drop(columns=['geometry'])
+                     ).rename(columns={'str_geom': 'geometry',
+                                       'COD_ZON': 'Zona_Censal',
+                                       'COD_ENT': 'Manzana_Censal',
+                                       'DES_COMU': 'Comuna'})
+
+# Ahora lo vuelvo a pasar a pyspark.
+fab_info_geo = sqlContext.createDataFrame(join_stgo_manzana)
+
+print('Dataset con el nuevo future de información geográfica agregado\n')
+fab_info_geo.show(truncate=False)
+
+# Cuento el número de fabricantes.
+df2 = fab_info_geo.select(countDistinct("Fabricante"))
+df2.show()
+
+# Reviso si es que hay valores nulos.
+# from pyspark.sql.functions import isnan, when, count, col
+# fab_info_geo.select([count(when(isnan(c), c)).alias(c) for c in fab_info_geo.
+#                      columns]).show()
 
