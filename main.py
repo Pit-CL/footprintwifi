@@ -120,15 +120,5 @@ df_stgo.show(truncate=False)
 # Información geográfica (ciudad, comuna, zona censal, manzana)
 # Necesito el df en pandas para trabajarlo.
 df_manzana = pd.DataFrame(Manzana_Precensal)
+# TODO: Revisar geopandas para poder ver el tema geometry con join
 
-# Transformo a string la columna geometry.
-df_manzana['str_geom'] = df_manzana.geometry.apply(lambda x: wkt.dumps(x))
-
-# FIXME: Debo corregir este lambda porque no funciona.
-# df_manzana.str_geom.apply(lambda x: pd.Series(str(x).split(" ")))
-# TODO: Tengo creado el string ahora debo separarlo para obtener 4 columnas.
-# TODO: Revisar si existe otra manera de relacionar geometry.
-str_limpio = (df_manzana['str_geom'].str.replace(
-    '(', '').str.replace(')', '').str.replace('POLYGON', '')).to_list()
-str_limpio = pd.DataFrame(str_limpio)
-df_manzana2 = pd.merge([str_limpio, df_manzana], right=True)
