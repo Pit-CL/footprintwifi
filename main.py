@@ -21,14 +21,11 @@ Spark.
 Alumno: Rafael Farias.
 Profesor: Oscar Peredo.
 """
-# from itertools import count
 import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
 from pyspark.sql.functions import substring, expr, countDistinct
-# from pyspark.sql.functions import first
-# import pandas as pd
 from shapely import wkt
 findspark.init()  # Con este no me tira error de JVM.
 
@@ -69,7 +66,7 @@ df_unidos.show(truncate=False)
 df_unidos = df_unidos.drop('updated', 'data')
 
 # Ahora creo el df solo con la RM según coordenadas de google maps.
-df_stgo = df_unidos.filter((df_unidos.lat >= -33.65) &
+f1_fabricante = df_unidos.filter((df_unidos.lat >= -33.65) &
                            (df_unidos.lat <= -33.28) &
                            (df_unidos.lon >= -70.81) &
                            (df_unidos.lon <= -70.50))
@@ -77,10 +74,13 @@ df_stgo = df_unidos.filter((df_unidos.lat >= -33.65) &
 # Credo el df final de Stgo.
 # Separo la columna bssid en una que contendrá Media_mac y otra que contendrá
 # Id_fabricante.
-df_stgo = df_stgo.withColumn('Id_fabricante', expr('substring(bssid,1,length(bssid)-6)')).withColumn(
-    'Media_mac', expr('substring(bssid,7,length(bssid)-6)')).drop('bssid')
+f1_fabricante = f1_fabricante.\
+    withColumn('Id_fabricante', expr('substring(bssid,1,length(bssid)-6)'))\
+    .withColumn('Media_mac', expr('substring(bssid,7,length(bssid)-6)')).\
+    drop('bssid')
+
 print('El dataframe de Santiago es el siguiente:\n')
-df_stgo.show()
+f1_fabricante.show()
 
 # Ahora trabajo con el archivo de texto.
 dict_vendor_id = dict()
@@ -115,7 +115,7 @@ Manzana_Precensal = gpd.read_file('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
 Manzana_Precensal = Manzana_Precensal.drop(['DES_REGI', 'MANZENT', 'COMUNA',
                                             'PROVINCIA', 'DES_PROV', 'REGION',
                                             'COD_DIS'], axis=1)
-# https://sparkbyexamples.com/pyspark/convert-pandas-to-pyspark-dataframe/
+
 print('El shape que contiene los datos solicitados es Manzana Precensal:\n')
 print(Manzana_Precensal)
 
@@ -123,15 +123,18 @@ print(Manzana_Precensal)
 # Fabricante.
 # Uno los df_stgo y df_oui a través de un join y además le solicito que lo haga
 # en donde Id_fabricante sea idéntico a _c0 del df_oui.
-df_stgo = df_stgo.join(df_oui).where(df_stgo["Id_fabricante"] == df_oui["_c0"])
-df_stgo = df_stgo.drop('_c0')
-df_stgo = df_stgo.withColumnRenamed('_c1', 'Fabricante')
+f1_fabricante = f1_fabricante.join(df_oui).\
+    where(f1_fabricante["Id_fabricante"] == df_oui["_c0"])
+
+f1_fabricante = f1_fabricante.drop('_c0')
+
+f1_fabricante = f1_fabricante.withColumnRenamed('_c1', 'Fabricante')
 print('El dataframe con el primer future es el siguiente:\n')
-df_stgo.show(truncate=False)
+f1_fabricante.show(truncate=False)
 
 # Información geográfica (ciudad, comuna, zona censal, manzana)
 # Transformo df_stgo a pandas para poder trabajarlo con geopandas
-df_stgo_pandas = df_stgo.toPandas()
+df_stgo_pandas = f1_fabricante.toPandas()
 
 # Ahora creo un geopandas para indicarle los points de lat y lon.
 df_stgo_geop = gpd.GeoDataFrame(df_stgo_pandas,
@@ -157,24 +160,70 @@ join_stgo_manzana = (join_stgo_manzana.drop(columns=['geometry'])
                                        'DES_COMU': 'Comuna'})
 
 # Ahora lo vuelvo a pasar a pyspark.
-fab_info_geo = sqlContext.createDataFrame(join_stgo_manzana)
+f1_georeferencia = sqlContext.createDataFrame(join_stgo_manzana)
 
 print('Dataset con el nuevo future de información geográfica agregado\n')
-fab_info_geo.show(truncate=False)
+f1_georeferencia.show(truncate=False)
 
 # Cuento el número de fabricantes distintos.
-df_temp1 = fab_info_geo.select(countDistinct("Fabricante"))
+df_temp1 = f1_georeferencia.select(countDistinct("Fabricante"))
 df_temp1.show()
 
 # Reviso si es que hay valores nulos.
 # from pyspark.sql.functions import isnan, when, count, col
 # fab_info_geo.select([count(when(isnan(c), c)).alias(c) for c in fab_info_geo.
 #                      columns]).show()
-# Cuento las ocurrencias de cada fabricante.
-fab_info_geo.groupBy('Fabricante').count().orderBy('count',
-                                                   ascending=False).show()
 
-# TODO: Debo buscar la manera de generar los futures de la parte2]
-# Lo de abajo me muestra bien la data, me falta ordenarla.
-fab_info_geo.groupby(fab_info_geo.Fabricante).pivot(
-    "Comuna").agg(countDistinct("id")).show()
+# Cuento las ocurrencias de cada fabricante.
+f1_georeferencia.groupBy('Fabricante').count().orderBy('count', 
+                                                       ascending=False)\
+                                                      .show(truncate=False)
+
+# Con la info de arriba tomo la decisión de agregar los 3 primeros fabricantes
+# como futures.
+# Paso a pandas para aplicar apply y lambda y poner un 1 donde encuentra el
+# nombre del fabricante y 0 en otros casos.
+f1_georeferencia = f1_georeferencia.toPandas()
+
+f1_georeferencia['q_ARRIS_Group'] = f1_georeferencia.\
+    apply(lambda x: 1 if (x["Fabricante"]) == 'ARRIS Group, Inc.' else 0,
+          axis=1)
+
+f1_georeferencia['q_Cisco_Systems_Inc'] = f1_georeferencia.\
+    apply(lambda x: 1 if (x["Fabricante"]) == 'Cisco Systems, Inc' else 0,
+          axis=1)
+
+f1_georeferencia['q_Technicolor'] = f1_georeferencia.\
+    apply(lambda x: 1 if (x["Fabricante"]) == 'Technicolor CH USA Inc.' else 0,
+          axis=1)
+
+suma = f1_georeferencia['q_ARRIS_Group'].sum() +\
+    f1_georeferencia['q_Cisco_Systems_Inc'].sum() +\
+    f1_georeferencia['q_Technicolor'].sum()
+
+# Generar lo otros futures que corresponden a la proporción.
+f1_georeferencia['p_ARRIS_Group'] = f1_georeferencia.\
+    apply(lambda x: 1/suma if (x["Fabricante"]) == 'ARRIS Group, Inc.' else 0,
+          axis=1)
+
+f1_georeferencia['p_Cisco_Systems_Inc'] = f1_georeferencia.\
+    apply(lambda x: 1/suma if (x["Fabricante"]) == 'Cisco Systems, Inc' else 0,
+          axis=1)
+
+f1_georeferencia['p_Technicolor'] = f1_georeferencia.\
+    apply(lambda x: 1/suma if (x["Fabricante"]) == 'Technicolor CH USA Inc.' else 0,
+          axis=1)
+
+proporcion = f1_georeferencia['p_ARRIS_Group'].sum() +\
+    f1_georeferencia['p_Cisco_Systems_Inc'].sum() +\
+    f1_georeferencia['p_Technicolor'].sum()
+
+f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
+f2_sum_prop.show()
+
+f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
+                                                      .show(truncate=False)
+
+f1_georeferencia['p_ARRIS_Group'].sum()
+f1_georeferencia['p_Cisco_Systems_Inc'].sum()
+f1_georeferencia['p_Technicolor'].sum()
