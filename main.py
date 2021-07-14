@@ -211,19 +211,15 @@ f1_georeferencia['p_Cisco_Systems_Inc'] = f1_georeferencia.\
           axis=1)
 
 f1_georeferencia['p_Technicolor'] = f1_georeferencia.\
-    apply(lambda x: 1/suma if (x["Fabricante"]) == 'Technicolor CH USA Inc.' else 0,
-          axis=1)
-
-proporcion = f1_georeferencia['p_ARRIS_Group'].sum() +\
-    f1_georeferencia['p_Cisco_Systems_Inc'].sum() +\
-    f1_georeferencia['p_Technicolor'].sum()
+    apply(lambda x: 1/suma if (x["Fabricante"]) == 'Technicolor CH USA Inc.'
+          else 0, axis=1)
 
 f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
 f2_sum_prop.show()
 
-f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
-                                                      .show(truncate=False)
+# f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
+#                                                       .show(truncate=False)
 
-f1_georeferencia['p_ARRIS_Group'].sum()
-f1_georeferencia['p_Cisco_Systems_Inc'].sum()
-f1_georeferencia['p_Technicolor'].sum()
+# f1_georeferencia['p_ARRIS_Group'].sum()
+# f1_georeferencia['p_Cisco_Systems_Inc'].sum()
+# f1_georeferencia['p_Technicolor'].sum()
