@@ -219,7 +219,3 @@ f2_sum_prop.show()
 
 # f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
 #                                                       .show(truncate=False)
-
-# f1_georeferencia['p_ARRIS_Group'].sum()
-# f1_georeferencia['p_Cisco_Systems_Inc'].sum()
-# f1_georeferencia['p_Technicolor'].sum()
