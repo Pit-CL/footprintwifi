@@ -21,12 +21,14 @@ Spark.
 Alumno: Rafael Farias.
 Profesor: Oscar Peredo.
 """
+# from itertools import count
 import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
 from pyspark.sql.functions import substring, expr, countDistinct
-import pandas as pd
+# from pyspark.sql.functions import first
+# import pandas as pd
 from shapely import wkt
 findspark.init()  # Con este no me tira error de JVM.
 
@@ -160,12 +162,19 @@ fab_info_geo = sqlContext.createDataFrame(join_stgo_manzana)
 print('Dataset con el nuevo future de información geográfica agregado\n')
 fab_info_geo.show(truncate=False)
 
-# Cuento el número de fabricantes.
-df2 = fab_info_geo.select(countDistinct("Fabricante"))
-df2.show()
+# Cuento el número de fabricantes distintos.
+df_temp1 = fab_info_geo.select(countDistinct("Fabricante"))
+df_temp1.show()
 
 # Reviso si es que hay valores nulos.
 # from pyspark.sql.functions import isnan, when, count, col
 # fab_info_geo.select([count(when(isnan(c), c)).alias(c) for c in fab_info_geo.
 #                      columns]).show()
+# Cuento las ocurrencias de cada fabricante.
+fab_info_geo.groupBy('Fabricante').count().orderBy('count',
+                                                   ascending=False).show()
 
+# TODO: Debo buscar la manera de generar los futures de la parte2]
+# Lo de abajo me muestra bien la data, me falta ordenarla.
+fab_info_geo.groupby(fab_info_geo.Fabricante).pivot(
+    "Comuna").agg(countDistinct("id")).show()
