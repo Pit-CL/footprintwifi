@@ -25,7 +25,7 @@ import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
-from pyspark.sql.functions import substring, expr, countDistinct
+from pyspark.sql.functions import expr, countDistinct
 from shapely import wkt
 findspark.init()  # Con este no me tira error de JVM.
 
@@ -175,7 +175,7 @@ df_temp1.show()
 #                      columns]).show()
 
 # Cuento las ocurrencias de cada fabricante.
-f1_georeferencia.groupBy('Fabricante').count().orderBy('count', 
+f1_georeferencia.groupBy('Fabricante').count().orderBy('count',
                                                        ascending=False)\
                                                       .show(truncate=False)
 
@@ -216,7 +216,7 @@ f1_georeferencia['p_Technicolor'] = f1_georeferencia.\
 
 f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
 print('El df resultante que incluye los futures del sprint dos es:\n')
-f2_sum_prop.show()
+f2_sum_prop.show(truncate=False)
 
 # f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
 #                                                       .show(truncate=False)
