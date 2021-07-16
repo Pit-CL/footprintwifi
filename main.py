@@ -67,9 +67,9 @@ df_unidos = df_unidos.drop('updated', 'data')
 
 # Ahora creo el df solo con la RM según coordenadas de google maps.
 f1_fabricante = df_unidos.filter((df_unidos.lat >= -33.65) &
-                           (df_unidos.lat <= -33.28) &
-                           (df_unidos.lon >= -70.81) &
-                           (df_unidos.lon <= -70.50))
+                                 (df_unidos.lat <= -33.28) &
+                                 (df_unidos.lon >= -70.81) &
+                                 (df_unidos.lon <= -70.50))
 
 # Credo el df final de Stgo.
 # Separo la columna bssid en una que contendrá Media_mac y otra que contendrá
