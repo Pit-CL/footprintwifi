@@ -160,3 +160,55 @@ only showing top 20 rows
 |                       109|
 +--------------------------+
 
++--------------------------------------------+-----+
+|Fabricante                                  |count|
++--------------------------------------------+-----+
+|ARRIS Group, Inc.                           |2884 |
+|Cisco Systems, Inc                          |2134 |
+|Technicolor CH USA Inc.                     |1440 |
+|Cisco-Linksys, LLC                          |1219 |
+|TP-LINK TECHNOLOGIES CO.,LTD.               |1096 |
+|PEGATRON CORPORATION                        |1039 |
+|Technicolor Delivery Technologies Belgium NV|873  |
+|D-Link International                        |660  |
+|Gemtek Technology Co., Ltd.                 |610  |
+|Thomson Telecom Belgium                     |510  |
+|ASUSTek COMPUTER INC.                       |455  |
+|Apple, Inc.                                 |451  |
+|SHENZHEN GONGJIN ELECTRONICS CO.,LT         |449  |
+|D-Link Corporation                          |384  |
+|Ruckus Wireless                             |331  |
+|Belkin International Inc.                   |302  |
+|TRENDnet, Inc.                              |298  |
+|Zyxel Communications Corporation            |217  |
+|Hewlett Packard                             |205  |
+|ASKEY COMPUTER CORP                         |180  |
++--------------------------------------------+-----+
+only showing top 20 rows
+
++--------+-------------+---------+--------------------+-----------+--------------+--------+--------------------+-------------+-------------------+-------------+--------------------+--------------------+-------------+
+|      id|Id_fabricante|Media_mac|          Fabricante|Zona_Censal|Manzana_Censal|  Comuna|            geometry|q_ARRIS_Group|q_Cisco_Systems_Inc|q_Technicolor|       p_ARRIS_Group| p_Cisco_Systems_Inc|p_Technicolor|
++--------+-------------+---------+--------------------+-----------+--------------+--------+--------------------+-------------+-------------------+-------------+--------------------+--------------------+-------------+
+| 8849791|       1CE6C7|   F010E6|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574261...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8849792|       1CE6C7|   F010E5|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574372...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8850139|       64E950|   33D911|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574116...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8851402|       34DBFD|   BFF298|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574094...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+|21197475|       C07BBC|   770DC2|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574384...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+|21198664|       C07BBC|   770FA7|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574327...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+|21199301|       C07BBC|   7710DA|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574387...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+|21199050|       64E950|   1FD4E0|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574110...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+|21198051|       A0F3C1|   D502BE|TP-LINK TECHNOLOG...|          5|            33|VITACURA|POINT (-70.574806...|            0|                  0|            0|                 0.0|                 0.0|          0.0|
+| 8849721|       58971E|   563864|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574310...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8851194|       1CE6C7|   3ED184|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574259...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8851448|       001DCE|   C4A2FC|   ARRIS Group, Inc.|          5|            33|VITACURA|POINT (-70.575810...|            1|                  0|            0|1.548467017652524E-4|                 0.0|          0.0|
+|21199025|       8C0C90|   17A138|     Ruckus Wireless|          5|            33|VITACURA|POINT (-70.575527...|            0|                  0|            0|                 0.0|                 0.0|          0.0|
+| 8849348|       189C5D|   404EAA|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574098...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8849618|       64E950|   33D74B|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574360...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8851644|       8C0C90|   3572C8|     Ruckus Wireless|          5|            33|VITACURA|POINT (-70.575773...|            0|                  0|            0|                 0.0|                 0.0|          0.0|
+|21198472|       A4934C|   B1AC3E|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574692...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+|21198943|       64E950|   1FDBD3|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574090...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8850287|       189C5D|   405414|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574095...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
+| 8850300|       1CE6C7|   E01313|  Cisco Systems, Inc|          5|            33|VITACURA|POINT (-70.574679...|            0|                  1|            0|                 0.0|1.548467017652524E-4|          0.0|
++--------+-------------+---------+--------------------+-----------+--------------+--------+--------------------+-------------+-------------------+-------------+--------------------+--------------------+-------------+
+only showing top 20 rows
+
