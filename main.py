@@ -215,6 +215,7 @@ f1_georeferencia['p_Technicolor'] = f1_georeferencia.\
           else 0, axis=1)
 
 f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
+print('El df resultante que incluye los futures del sprint dos es:\n')
 f2_sum_prop.show()
 
 # f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
