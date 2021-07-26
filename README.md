@@ -19,6 +19,4 @@ Todos estos archivos deben estar guardados en la misma carpeta.
 Por último recuerda que si lo corres en tu máquina local debes tener habilitado
 Spark.
 
-Alumno: Rafael Farias.
-Profesor: Oscar Peredo.
 

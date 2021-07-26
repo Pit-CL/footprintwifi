@@ -25,20 +25,21 @@ import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
-from pyspark.sql.functions import expr, countDistinct
+from pyspark.sql.functions import expr, countDistinct, col
 from shapely import wkt
 findspark.init()  # Con este no me tira error de JVM.
 
-# Se setea el Master y se le da nombre a la aplicación.
+# Naming the Master and de app.
 conf = SparkConf().setMaster("local").setAppName("Tarea Analisis de BigData")
 
-# Se inicia el cluster Spark.
+# Starting Spark Cluster.
 sc = SparkContext.getOrCreate(conf=conf)
 
 # Se inicia SQLContext desde el cluster de Spark.
 sqlContext = SQLContext(sc)
 
-# TODO: Tratar de hacer un loop mas automatico para la lectura.
+# I/O
+# We can use only 2019, because it is contain all data from past years.
 FilePath = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data'
 
 FileName1 = 'wifi_2017.csv'
@@ -57,7 +58,7 @@ df_2017 = df_2017.withColumnRenamed('data_source', 'data')
 
 df_2017 = df_2017.drop('range', 'created')
 
-# Ahora ordeno las columnas para que todas tengan el mismo orden.
+# Sorting columns.
 df_2017 = df_2017.select('id', 'bssid', 'lat', 'lon', 'updated', 'data')
 
 df_unidos = ((df_2017.union(df_2018)).union(df_2019)).distinct()
@@ -65,24 +66,32 @@ print('El dataframe que contiene todos los csv es el siguiente:\n')
 df_unidos.show(truncate=False)
 df_unidos = df_unidos.drop('updated', 'data')
 
-# Ahora creo el df solo con la RM según coordenadas de google maps.
-f1_fabricante = df_unidos.filter((df_unidos.lat >= -33.65) &
+# Df for Santiago only.
+def solo_santiago(df_unidos):
+    f1_fabricante = df_unidos.filter((df_unidos.lat >= -33.65) &
                                  (df_unidos.lat <= -33.28) &
                                  (df_unidos.lon >= -70.81) &
                                  (df_unidos.lon <= -70.50))
+                                     
+    return f1_fabricante
 
-# Credo el df final de Stgo.
-# Separo la columna bssid en una que contendrá Media_mac y otra que contendrá
-# Id_fabricante.
-f1_fabricante = f1_fabricante.\
+f1_fabricante = solo_santiago(df_unidos)
+
+# Final df of Stgo.
+# Dividing column bssid into Media_mac and Id_fabricante.
+def mac_y_fabricante(f1_fabricante):
+    f1_fabricante = f1_fabricante.\
     withColumn('Id_fabricante', expr('substring(bssid,1,length(bssid)-6)'))\
     .withColumn('Media_mac', expr('substring(bssid,7,length(bssid)-6)')).\
     drop('bssid')
 
-print('El dataframe de Santiago es el siguiente:\n')
-f1_fabricante.show()
+    print('El dataframe de Santiago es el siguiente:\n')
+    f1_fabricante.show()
+    return f1_fabricante
 
-# Ahora trabajo con el archivo de texto.
+f1_fabricante = mac_y_fabricante(f1_fabricante)
+
+# Working with text file.
 dict_vendor_id = dict()
 
 for lig in open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/'
@@ -91,27 +100,25 @@ for lig in open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/'
         num, sep, txt = lig.strip().partition('(base 16)')
         dict_vendor_id[num.strip()] = txt.strip()
 
-# Transformo el diccionario en csv para mejor manipulación.
+# Creating a csv file for better manipulation.
 with open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/oui.csv',
           'w') as f:
     w = csv.writer(f)
     w.writerows(dict_vendor_id.items())
 
-# Creo el df
+# Create text file's df
 df_oui = sqlContext.read.csv('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
                              'sprint1/oui.csv',
                              header=False)
 print('El dataframe del archivo OUI.txt es el siguiente:\n')
 df_oui.show(truncate=False)
 
-# Ahora me preocupo de revisar los archivos de geolocalización.
-# En el Archivo Manzana_Precensal.shp se encuentra toda la info solicitada
-# salvo por la ciudad.
+# Opening shape file.
 Manzana_Precensal = gpd.read_file('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
                                   'sprint1/data/'
                                   'Manzana_Precensal.shp')
 
-# Elimino columnas innecesarias.
+# Drop unnecessary columns.
 Manzana_Precensal = Manzana_Precensal.drop(['DES_REGI', 'MANZENT', 'COMUNA',
                                             'PROVINCIA', 'DES_PROV', 'REGION',
                                             'COD_DIS'], axis=1)
@@ -119,104 +126,141 @@ Manzana_Precensal = Manzana_Precensal.drop(['DES_REGI', 'MANZENT', 'COMUNA',
 print('El shape que contiene los datos solicitados es Manzana Precensal:\n')
 print(Manzana_Precensal)
 
-# Construcción de futures.
+print('==============')
+print('Sprint 2')
+print('==============')
+# Making futures.
 # Fabricante.
-# Uno los df_stgo y df_oui a través de un join y además le solicito que lo haga
-# en donde Id_fabricante sea idéntico a _c0 del df_oui.
-f1_fabricante = f1_fabricante.join(df_oui).\
+# Join the df_stgo and df_oui through a join function and also make where
+# manufacturer_id is identical to _c0 of the df_oui.
+def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
+    f1_fabricante = f1_fabricante.join(df_oui).\
     where(f1_fabricante["Id_fabricante"] == df_oui["_c0"])
 
-f1_fabricante = f1_fabricante.drop('_c0')
+    f1_fabricante = f1_fabricante.drop('_c0')
 
-f1_fabricante = f1_fabricante.withColumnRenamed('_c1', 'Fabricante')
-print('El dataframe con el primer future es el siguiente:\n')
-f1_fabricante.show(truncate=False)
+    f1_fabricante = f1_fabricante.withColumnRenamed('_c1', 'Fabricante')
+    print('El dataframe con el primer future es el siguiente:\n')
+    f1_fabricante.show(truncate=False)
 
-# Información geográfica (ciudad, comuna, zona censal, manzana)
-# Transformo df_stgo a pandas para poder trabajarlo con geopandas
-df_stgo_pandas = f1_fabricante.toPandas()
+    # Tranform df_stgo to pandas dataframe to work with geopandas.
+    df_stgo_pandas = f1_fabricante.toPandas()
 
-# Ahora creo un geopandas para indicarle los points de lat y lon.
-df_stgo_geop = gpd.GeoDataFrame(df_stgo_pandas,
+    # Creating a geopandas to indicate lat and lon points.
+    df_stgo_geop = gpd.GeoDataFrame(df_stgo_pandas,
                                 geometry=gpd.points_from_xy
                                 (df_stgo_pandas.lon, df_stgo_pandas.lat))
 
-df_stgo_geop = df_stgo_geop.drop(columns=['lat', 'lon'])
+    df_stgo_geop = df_stgo_geop.drop(columns=['lat', 'lon'])
 
-# Le indico el CRS para que quede igual a Manzana_Precensal.
-df_stgo_geop.crs = 'EPSG:4674'
+    # CRS.
+    df_stgo_geop.crs = 'EPSG:4674'
 
-# Ahora hago un join con geopandas entre df_stgo_geop y Manzana_Precensal.
-join_stgo_manzana = gpd.sjoin(df_stgo_geop, Manzana_Precensal, op='within',
+    # Joining with geopandas  df_stgo_geop and Manzana_Precensal.
+    join_stgo_manzana = gpd.sjoin(df_stgo_geop, Manzana_Precensal, op='within',
                               how='inner')
 
-join_stgo_manzana = join_stgo_manzana.drop(columns=['index_right'])
-join_stgo_manzana['str_geom'] = join_stgo_manzana.geometry.apply(lambda x: wkt.
-                                                                 dumps(x))
-join_stgo_manzana = (join_stgo_manzana.drop(columns=['geometry'])
+    join_stgo_manzana = join_stgo_manzana.drop(columns=['index_right'])
+    join_stgo_manzana['str_geom'] = join_stgo_manzana.geometry.apply(lambda x: wkt.
+                                                                     dumps(x))
+    join_stgo_manzana = (join_stgo_manzana.drop(columns=['geometry'])
                      ).rename(columns={'str_geom': 'geometry',
                                        'COD_ZON': 'Zona_Censal',
                                        'COD_ENT': 'Manzana_Censal',
                                        'DES_COMU': 'Comuna'})
 
-# Ahora lo vuelvo a pasar a pyspark.
-f1_georeferencia = sqlContext.createDataFrame(join_stgo_manzana)
+    # Converting to pyspark.
+    f1_georeferencia = sqlContext.createDataFrame(join_stgo_manzana)
 
-print('Dataset con el nuevo future de información geográfica agregado\n')
-f1_georeferencia.show(truncate=False)
+    print('Dataset con el nuevo future de información geográfica agregado\n')
+    f1_georeferencia.show(truncate=False)
+    return f1_georeferencia
 
-# Cuento el número de fabricantes distintos.
-df_temp1 = f1_georeferencia.select(countDistinct("Fabricante"))
-df_temp1.show()
+f1_georeferencia = future_georef(sqlContext, f1_fabricante, df_oui,
+                                 Manzana_Precensal)
 
-# Reviso si es que hay valores nulos.
+# Reviewing the numbers of different makers.
+# df_temp1 = f1_georeferencia.select(countDistinct("Fabricante"))
+# df_temp1.show()
+
+# Reviewing null values.
 # from pyspark.sql.functions import isnan, when, count, col
 # fab_info_geo.select([count(when(isnan(c), c)).alias(c) for c in fab_info_geo.
 #                      columns]).show()
 
-# Cuento las ocurrencias de cada fabricante.
-f1_georeferencia.groupBy('Fabricante').count().orderBy('count',
-                                                       ascending=False)\
-                                                      .show(truncate=False)
+# Counting the occurrence of every maker.
+# f1_georeferencia.groupBy('Fabricante').count().orderBy('count',
+#                                                        ascending=False)\
+#                                                       .show(truncate=False)
 
-# Con la info de arriba tomo la decisión de agregar los 3 primeros fabricantes
-# como futures.
-# Paso a pandas para aplicar apply y lambda y poner un 1 donde encuentra el
-# nombre del fabricante y 0 en otros casos.
-f1_georeferencia = f1_georeferencia.toPandas()
+# With the info above I make the decision to add the first 3 manufacturers
+# as futures.Step to pandas to apply the apply function and lambda function
+# and put a 1 where it finds the manufacturer's name and 0 in other cases.
+def lamba_rellenar(sqlContext, f1_georeferencia):
+    f1_georeferencia = f1_georeferencia.toPandas()
 
-f1_georeferencia['q_ARRIS_Group'] = f1_georeferencia.\
+    f1_georeferencia['q_ARRIS_Group'] = f1_georeferencia.\
     apply(lambda x: 1 if (x["Fabricante"]) == 'ARRIS Group, Inc.' else 0,
           axis=1)
 
-f1_georeferencia['q_Cisco_Systems_Inc'] = f1_georeferencia.\
+    f1_georeferencia['q_Cisco_Systems_Inc'] = f1_georeferencia.\
     apply(lambda x: 1 if (x["Fabricante"]) == 'Cisco Systems, Inc' else 0,
           axis=1)
 
-f1_georeferencia['q_Technicolor'] = f1_georeferencia.\
+    f1_georeferencia['q_Technicolor'] = f1_georeferencia.\
     apply(lambda x: 1 if (x["Fabricante"]) == 'Technicolor CH USA Inc.' else 0,
           axis=1)
 
-suma = f1_georeferencia['q_ARRIS_Group'].sum() +\
+    # Suming.
+    suma = f1_georeferencia['q_ARRIS_Group'].sum() +\
     f1_georeferencia['q_Cisco_Systems_Inc'].sum() +\
     f1_georeferencia['q_Technicolor'].sum()
 
-# Generar lo otros futures que corresponden a la proporción.
-f1_georeferencia['p_ARRIS_Group'] = f1_georeferencia.\
+    # Proportion.
+    f1_georeferencia['p_ARRIS_Group'] = f1_georeferencia.\
     apply(lambda x: 1/suma if (x["Fabricante"]) == 'ARRIS Group, Inc.' else 0,
           axis=1)
 
-f1_georeferencia['p_Cisco_Systems_Inc'] = f1_georeferencia.\
+    f1_georeferencia['p_Cisco_Systems_Inc'] = f1_georeferencia.\
     apply(lambda x: 1/suma if (x["Fabricante"]) == 'Cisco Systems, Inc' else 0,
           axis=1)
 
-f1_georeferencia['p_Technicolor'] = f1_georeferencia.\
+    f1_georeferencia['p_Technicolor'] = f1_georeferencia.\
     apply(lambda x: 1/suma if (x["Fabricante"]) == 'Technicolor CH USA Inc.'
           else 0, axis=1)
 
-f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
-print('El df resultante que incluye los futures del sprint dos es:\n')
-f2_sum_prop.show(truncate=False)
+    f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
+    print('El df resultante que incluye los futures del sprint dos es:\n')
+    f2_sum_prop.show(truncate=False)
+    return f2_sum_prop
+
+lamba_rellenar(sqlContext, f1_georeferencia)
 
 # f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
 #                                                       .show(truncate=False)
+
+print('==============')
+print('Sprint 3')
+print('==============')
+# TODO: Revisar la diferencia de redes entre el año 2018 y 2019.
+# Year 2018.
+df_2018 = df_2018.drop('updated', 'data')
+df_2018 = solo_santiago(df_2018)
+f1_fab_2018 = mac_y_fabricante(df_2018)
+f1_geo_2018 = future_georef(sqlContext, f1_fab_2018, df_oui, Manzana_Precensal)
+f2_2018 = lamba_rellenar(sqlContext, f1_geo_2018)
+
+# Year 2019.
+df_2019 = df_2019.drop('updated', 'data')
+df_2019 = solo_santiago(df_2019)
+f1_fab_2019 = mac_y_fabricante(df_2019)
+f1_geo_2019 = future_georef(sqlContext, f1_fab_2019, df_oui, Manzana_Precensal)
+f2_2019 = lamba_rellenar(sqlContext, f1_geo_2019)
+
+# Disctinct the rows
+f2_2018 = f2_2018.distinct()
+f2_2019 = f2_2019.distinct()
+
+# 
+
+
