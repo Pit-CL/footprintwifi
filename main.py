@@ -25,7 +25,7 @@ import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
-from pyspark.sql.functions import expr, countDistinct, col
+from pyspark.sql.functions import expr, countDistinct
 from shapely import wkt
 findspark.init()  # Con este no me tira error de JVM.
 
@@ -35,7 +35,7 @@ conf = SparkConf().setMaster("local").setAppName("Tarea Analisis de BigData")
 # Starting Spark Cluster.
 sc = SparkContext.getOrCreate(conf=conf)
 
-# Se inicia SQLContext desde el cluster de Spark.
+# Starting SqlContext from sc.
 sqlContext = SQLContext(sc)
 
 # I/O
@@ -61,6 +61,9 @@ df_2017 = df_2017.drop('range', 'created')
 # Sorting columns.
 df_2017 = df_2017.select('id', 'bssid', 'lat', 'lon', 'updated', 'data')
 
+print('==============')
+print('Sprint 1')
+print('==============')
 df_unidos = ((df_2017.union(df_2018)).union(df_2019)).distinct()
 print('El dataframe que contiene todos los csv es el siguiente:\n')
 df_unidos.show(truncate=False)
@@ -75,6 +78,7 @@ def solo_santiago(df_unidos):
                                      
     return f1_fabricante
 
+
 f1_fabricante = solo_santiago(df_unidos)
 
 # Final df of Stgo.
@@ -88,6 +92,7 @@ def mac_y_fabricante(f1_fabricante):
     print('El dataframe de Santiago es el siguiente:\n')
     f1_fabricante.show()
     return f1_fabricante
+
 
 f1_fabricante = mac_y_fabricante(f1_fabricante)
 
@@ -129,6 +134,7 @@ print(Manzana_Precensal)
 print('==============')
 print('Sprint 2')
 print('==============')
+
 # Making futures.
 # Fabricante.
 # Join the df_stgo and df_oui through a join function and also make where
@@ -176,6 +182,7 @@ def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     f1_georeferencia.show(truncate=False)
     return f1_georeferencia
 
+
 f1_georeferencia = future_georef(sqlContext, f1_fabricante, df_oui,
                                  Manzana_Precensal)
 
@@ -193,7 +200,7 @@ f1_georeferencia = future_georef(sqlContext, f1_fabricante, df_oui,
 #                                                        ascending=False)\
 #                                                       .show(truncate=False)
 
-# With the info above I make the decision to add the first 3 manufacturers
+# With the info above I made the decision to add the first 3 manufacturers
 # as futures.Step to pandas to apply the apply function and lambda function
 # and put a 1 where it finds the manufacturer's name and 0 in other cases.
 def lamba_rellenar(sqlContext, f1_georeferencia):
@@ -234,33 +241,41 @@ def lamba_rellenar(sqlContext, f1_georeferencia):
     f2_sum_prop.show(truncate=False)
     return f2_sum_prop
 
-lamba_rellenar(sqlContext, f1_georeferencia)
 
-# f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
-#                                                       .show(truncate=False)
+lamba_rellenar(sqlContext, f1_georeferencia)
 
 print('==============')
 print('Sprint 3')
 print('==============')
-# TODO: Revisar la diferencia de redes entre el año 2018 y 2019.
+
 # Year 2018.
+print('==============')
+print('Steps for 2018')
+print('==============')
 df_2018 = df_2018.drop('updated', 'data')
 df_2018 = solo_santiago(df_2018)
 f1_fab_2018 = mac_y_fabricante(df_2018)
 f1_geo_2018 = future_georef(sqlContext, f1_fab_2018, df_oui, Manzana_Precensal)
-f2_2018 = lamba_rellenar(sqlContext, f1_geo_2018)
+f2_2018 = lamba_rellenar(sqlContext, f1_geo_2018).distinct()
 
 # Year 2019.
+print('==============')
+print('Steps for 2019')
+print('==============')
 df_2019 = df_2019.drop('updated', 'data')
 df_2019 = solo_santiago(df_2019)
 f1_fab_2019 = mac_y_fabricante(df_2019)
 f1_geo_2019 = future_georef(sqlContext, f1_fab_2019, df_oui, Manzana_Precensal)
-f2_2019 = lamba_rellenar(sqlContext, f1_geo_2019)
+f2_2019 = lamba_rellenar(sqlContext, f1_geo_2019).distinct()
 
-# Disctinct the rows
-f2_2018 = f2_2018.distinct()
-f2_2019 = f2_2019.distinct()
+# Final dataframes for years 2018 and 2019.
+print('Final 2018 dataframe after drop duplicates:\n')
+f2_2018.show(truncate=False)
+print('Final 2019 dataframe after drop duplicates:\n')
+f2_2019.show(truncate=False)
 
-# 
+# Now i have to add the new futures 
 
 
+# f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
+#                                                       .show(truncate=False)

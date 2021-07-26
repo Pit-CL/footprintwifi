@@ -19,4 +19,34 @@ Todos estos archivos deben estar guardados en la misma carpeta.
 Por último recuerda que si lo corres en tu máquina local debes tener habilitado
 Spark.
 
+Sprint 2: Datos preparados I
+Crear funciones que permitan construir los siguientes features para cada red
+WiFi:
+Fabricante
+Información geográfica (ciudad, comuna, zona censal, manzana)
+Crear funciones que permitan construir los siguientes features para cada
+ ciudad, comuna, zona censal o cada manzana:
+Cantidad de redes WiFi del fabricante X
+Proporcion de redes WiFi del fabricante X
+
+Sprint 3: Datos preparados II
+En base a las funciones creadas en el sprint 2, implementar funciones para
+crear los siguientes features para cada ciudad, comuna, zona censal o manzana:
+Diferencia en cantidad de redes wifi del fabricante F entre dos 
+dumps YY-ZZ-XXXX y AA-BB-CCCC.
+Diferencia en proporción de redes wifi del fabricante F entre dos 
+dumps YY-ZZ-XXXX y AA-BB-CCCC. 
+Implementar al menos 20 features adicionales, a criterio de cada grupo.
+
+Sprint 4: Datos mapeados x algoritmo I
+Implementar función que genere la variable dependiente a predecir. Se debe
+definir si la predicción va a ser sólo espacial, o espacio-temporal.
+Construir el “tablón” final que ingresará al algoritmo (particionando por
+train/test/validación)
+Entrenar el modelo usando el algoritmo Gradient Boosting Trees 
+(en particular usando las implementaciones XGBoost o LightGBM),
+para un set de parámetros fijo (exploratorio).
+
+
+
 
