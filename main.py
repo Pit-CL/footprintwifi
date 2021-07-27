@@ -25,7 +25,7 @@ import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
-from pyspark.sql.functions import expr, countDistinct
+from pyspark.sql.functions import expr, countDistinct, lit
 from shapely import wkt
 findspark.init()  # Con este no me tira error de JVM.
 
@@ -75,7 +75,6 @@ def solo_santiago(df_unidos):
                                  (df_unidos.lat <= -33.28) &
                                  (df_unidos.lon >= -70.81) &
                                  (df_unidos.lon <= -70.50))
-                                     
     return f1_fabricante
 
 
@@ -183,7 +182,7 @@ def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     return f1_georeferencia
 
 
-f1_georeferencia = future_georef(sqlContext, f1_fabricante, df_oui,
+df_union2 = future_georef(sqlContext, f1_fabricante, df_oui,
                                  Manzana_Precensal)
 
 # Reviewing the numbers of different makers.
@@ -242,7 +241,7 @@ def lamba_rellenar(sqlContext, f1_georeferencia):
     return f2_sum_prop
 
 
-lamba_rellenar(sqlContext, f1_georeferencia)
+lamba_rellenar(sqlContext, df_union2)
 
 print('==============')
 print('Sprint 3')
@@ -257,6 +256,13 @@ df_2018 = solo_santiago(df_2018)
 f1_fab_2018 = mac_y_fabricante(df_2018)
 f1_geo_2018 = future_georef(sqlContext, f1_fab_2018, df_oui, Manzana_Precensal)
 f2_2018 = lamba_rellenar(sqlContext, f1_geo_2018).distinct()
+f2_2018 = f2_2018\
+    .withColumnRenamed('q_Arris_Group', 'q2018_Arris_Group')\
+    .withColumnRenamed('q_Cisco_Systems_Inc', 'q2018_Cisco_Systems_Inc')\
+    .withColumnRenamed('q_Technicolor', 'q2018_Technicolor')\
+    .withColumnRenamed('p_ARRIS_Group', 'p2018_ARRIS_Group')\
+    .withColumnRenamed('p_Cisco_Systems_Inc', 'p2018_Cisco_Systems_Inc')\
+    .withColumnRenamed('p_Technicolor', 'p2018_Technicolor')
 
 # Year 2019.
 print('==============')
@@ -267,6 +273,13 @@ df_2019 = solo_santiago(df_2019)
 f1_fab_2019 = mac_y_fabricante(df_2019)
 f1_geo_2019 = future_georef(sqlContext, f1_fab_2019, df_oui, Manzana_Precensal)
 f2_2019 = lamba_rellenar(sqlContext, f1_geo_2019).distinct()
+f2_2019 = f2_2019\
+    .withColumnRenamed('q_Arris_Group', 'q2019_Arris_Group')\
+    .withColumnRenamed('q_Cisco_Systems_Inc', 'q2019_Cisco_Systems_Inc')\
+    .withColumnRenamed('q_Technicolor', 'q2019_Technicolor')\
+    .withColumnRenamed('p_ARRIS_Group', 'p2019_ARRIS_Group')\
+    .withColumnRenamed('p_Cisco_Systems_Inc', 'p2019_Cisco_Systems_Inc')\
+    .withColumnRenamed('p_Technicolor', 'p2019_Technicolor')
 
 # Final dataframes for years 2018 and 2019.
 print('Final 2018 dataframe after drop duplicates:\n')
@@ -275,7 +288,31 @@ print('Final 2019 dataframe after drop duplicates:\n')
 f2_2019.show(truncate=False)
 
 # Now i have to add the new futures 
+# f2_2019.subtract(f2_2018) gets the difference of f2_2018
+# from f2_2019. So the rows that are present in f2_2019
+# but not present in f2_2018 will be returned
+in_2019_not_2018 = f2_2019.subtract(f2_2018)
+in_2019_not_2018.show()
 
 
-# f2_sum_prop.groupBy('Comuna').count().orderBy('count', ascending=False)\
-#                                                       .show(truncate=False)
+# Create the missing columns in both df's using lit function.
+for column in [column for column in f2_2018.columns if column not in in_2019_not_2018.columns]:
+    in_2019_not_2018 = in_2019_not_2018.withColumn(column, lit(None))
+    
+for column in [column for column in in_2019_not_2018.columns if column not in f2_2018.columns]:
+    f2_2018 = f2_2018.withColumn(column, lit(None))
+
+# FIXME: Las sumas no cuadran.
+# Create a new df with 2018 plus all 2019 that doesn't exist in 2018.
+df_union2 = in_2019_not_2018.unionByName(f2_2018)
+df_union2 = df_union2.na.fill(0)
+
+# Debo volver a hacer las sumas.
+df_union2.agg({'q2018_Arris_Group': 'sum'}).show()
+
+# df_union2 = df_union2.toPandas()
+# suma2 = df_union2['q2018_ARRIS_Group'].sum() +\
+# df_union2['q2018_Cisco_Systems_Inc'].sum() +\
+# df_union2['q2018_Technicolor'].sum()
+# Ahora le hago un drop a las columnas que no se necesitan
+
