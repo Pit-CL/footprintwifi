@@ -73,6 +73,14 @@ df_unidos = df_unidos.drop('updated', 'data')
 
 # Df for Santiago only.
 def solo_santiago(df_unidos):
+    """It's get only Santiago city from dataset.
+
+    Args:
+        df_unidos (Spark dataframe): It's contain all data.
+
+    Returns:
+        Spark Dataframe: Spark dataframe that only contain Santiago.
+    """
     f1_fabricante = df_unidos.filter((df_unidos.lat >= -33.65) &
                                      (df_unidos.lat <= -33.28) &
                                      (df_unidos.lon >= -70.81) &
@@ -86,6 +94,16 @@ f1_fabricante = solo_santiago(df_unidos)
 # Final df of Stgo.
 # Dividing column bssid into Media_mac and Id_fabricante.
 def mac_y_fabricante(f1_fabricante):
+    """It's create two new columns with Id_fabricante and Media_mac.
+
+    Args:
+        f1_fabricante (Spark dataframe): Spark dataframe that only contain
+        Santiago.
+
+    Returns:
+        Spark dataframe: Spark dataframe than contain in two separated columns
+        the Id_fabricante and Media_mac
+    """
     f1_fabricante = f1_fabricante.\
         withColumn('Id_fabricante',
                    expr('substring(bssid,1,length(bssid)-6)'))\
@@ -144,6 +162,18 @@ print('==============')
 # Join the df_stgo and df_oui through a join function and also make where
 # manufacturer_id is identical to _c0 of the df_oui.
 def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
+    """It's get the geo future.
+
+    Args:
+        sqlContext (context): Pyspark environment
+        f1_fabricante (Spark dataframe): Spark dataframe that only contain
+        Santiago.
+        df_oui (Dataframe): It's contain the Id_fabricante and the name.
+        Manzana_Precensal (Shape file): Georeference dataframe.
+
+    Returns:
+        Spark dataframe: Spark dataframe that contain the geo future.
+    """
     f1_fabricante = f1_fabricante.join(df_oui).\
         where(f1_fabricante["Id_fabricante"] == df_oui["_c0"])
 
@@ -171,8 +201,8 @@ def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
                                   how='inner')
 
     join_stgo_manzana = join_stgo_manzana.drop(columns=['index_right'])
-    join_stgo_manzana['str_geom'] = join_stgo_manzana.geometry.apply(lambda x: wkt.
-                                                                     dumps(x))
+    join_stgo_manzana['str_geom'] = join_stgo_manzana.geometry.\
+        apply(lambda x: wkt.dumps(x))
     join_stgo_manzana = (join_stgo_manzana.drop(columns=['geometry'])
                          ).rename(columns={'str_geom': 'geometry',
                                            'COD_ZON': 'Zona_Censal',
@@ -209,19 +239,31 @@ df_union2 = future_georef(sqlContext, f1_fabricante, df_oui,
 # as futures.Step to pandas to apply the apply function and lambda function
 # and put a 1 where it finds the manufacturer's name and 0 in other cases.
 def lamba_rellenar(sqlContext, f1_georeferencia):
+    """It's get the quantity and proportion of all wifi makers plus the above
+    future.
+
+    Args:
+        sqlContext (context): Pyspark environment.
+        f1_georeferencia (Spark dataframe): Spark dataframe that contain the
+        geo future.
+
+    Returns:
+        Spark dataframe: Spark dataframe that contain the geo future plus the
+        above future.
+    """
     f1_georeferencia = f1_georeferencia.toPandas()
 
     f1_georeferencia['q_ARRIS_Group'] = f1_georeferencia.\
-        apply(lambda x: 1 if (x["Fabricante"]) == 'ARRIS Group, Inc.' else 0,
-              axis=1)
+        apply(lambda x: 1 if (x["Fabricante"]) ==
+              'ARRIS Group, Inc.' else 0, axis=1)
 
     f1_georeferencia['q_Cisco_Systems_Inc'] = f1_georeferencia.\
-        apply(lambda x: 1 if (x["Fabricante"]) == 'Cisco Systems, Inc' else 0,
-              axis=1)
+        apply(lambda x: 1 if (x["Fabricante"]) ==
+              'Cisco Systems, Inc' else 0, axis=1)
 
     f1_georeferencia['q_Technicolor'] = f1_georeferencia.\
-        apply(lambda x: 1 if (x["Fabricante"]) == 'Technicolor CH USA Inc.' else 0,
-              axis=1)
+        apply(lambda x: 1 if (x["Fabricante"]) ==
+              'Technicolor CH USA Inc.' else 0, axis=1)
 
     # Suming.
     suma = f1_georeferencia['q_ARRIS_Group'].sum() +\
@@ -230,16 +272,16 @@ def lamba_rellenar(sqlContext, f1_georeferencia):
 
     # Proportion.
     f1_georeferencia['p_ARRIS_Group'] = f1_georeferencia.\
-        apply(lambda x: 1/suma if (x["Fabricante"]) == 'ARRIS Group, Inc.' else 0,
-              axis=1)
+        apply(lambda x: 1/suma if (x["Fabricante"]) ==
+              'ARRIS Group, Inc.' else 0, axis=1)
 
     f1_georeferencia['p_Cisco_Systems_Inc'] = f1_georeferencia.\
-        apply(lambda x: 1/suma if (x["Fabricante"]) == 'Cisco Systems, Inc' else 0,
-              axis=1)
+        apply(lambda x: 1/suma if (x["Fabricante"]) ==
+              'Cisco Systems, Inc' else 0, axis=1)
 
     f1_georeferencia['p_Technicolor'] = f1_georeferencia.\
-        apply(lambda x: 1/suma if (x["Fabricante"]) == 'Technicolor CH USA Inc.'
-              else 0, axis=1)
+        apply(lambda x: 1/suma if (x["Fabricante"]) ==
+              'Technicolor CH USA Inc.' else 0, axis=1)
 
     f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
     print('El df resultante que incluye los futures del sprint dos es:\n')
@@ -295,6 +337,18 @@ f2_2019.show(truncate=False)
 
 
 def differences(sqlContext, f2_2018, f2_2019):
+    """It's create the future for differences between 2018 and 2019 regarding
+    quantity and proportion.
+
+    Args:
+        sqlContext (context): Pyspark environment.
+        f2_2018 (Spark dataframe): It's contain all 2018 with above futures
+        f2_2019 (Spark dataframe): It's contain all 2019 with above futures.
+  
+    Returns:
+    Spark dataframe: Spark dataframe that contain futures before differences
+    between years.
+    """
     # Now i have to add the new futures.
     # f2_2019.subtract(f2_2018) gets the difference of f2_2018
     # from f2_2019. So the rows that are present in f2_2019
@@ -303,27 +357,28 @@ def differences(sqlContext, f2_2018, f2_2019):
     print('This df contain the difference between 2018 and 2019 years')
     in_2019_not_2018.show()
 
-
-# Create the missing columns in both df's using lit function.
-    for column in [column for column in f2_2018.columns if column not in in_2019_not_2018.columns]:
+    # Create the missing columns in both df's using lit function.
+    for column in [column for column in f2_2018.
+                   columns if column not in in_2019_not_2018.columns]:
         in_2019_not_2018 = in_2019_not_2018.withColumn(column, lit(None))
 
-    for column in [column for column in in_2019_not_2018.columns if column not in f2_2018.columns]:
+    for column in [column for column in in_2019_not_2018.
+                   columns if column not in f2_2018.columns]:
         f2_2018 = f2_2018.withColumn(column, lit(None))
 
-# Create a new df with 2018 plus all 2019 that doesn't exist in 2018.
+    # Create a new df with 2018 plus all 2019 that doesn't exist in 2018.
     df_union2 = in_2019_not_2018.unionByName(f2_2018)
     df_union2 = df_union2.na.fill(0)
     print('This df contains all data to process the differences')
     df_union2.show(truncate=False)
 
-# Suming 2018 q's.
+    # Suming 2018 q's.
     df_union2 = df_union2.toPandas()
     suma2 = df_union2['q2018_Arris_Group'].sum() +\
         df_union2['q2018_Cisco_Systems_Inc'].sum() +\
         df_union2['q2018_Technicolor'].sum()
 
-# Apply the correct formula to get de p value for 2018.
+    # Apply the correct formula to get de p value for 2018.
     df_union2['p2018_ARRIS_Group'] = df_union2.\
         apply(lambda x: 1/suma2 if (x["q2018_Arris_Group"]) == 1 else 0,
               axis=1)
@@ -336,12 +391,12 @@ def differences(sqlContext, f2_2018, f2_2019):
         apply(lambda x: 1 /
               suma2 if (x["q2018_Technicolor"]) == 1 else 0, axis=1)
 
-# Suming 2019 q's.
+    # Suming 2019 q's.
     suma3 = df_union2['q2019_Arris_Group'].sum() +\
         df_union2['q2019_Cisco_Systems_Inc'].sum() +\
         df_union2['q2019_Technicolor'].sum()
 
-# Apply the correct formula to get de p value for 2019.
+    # Apply the correct formula to get de p value for 2019.
     df_union2['p2019_ARRIS_Group'] = df_union2.\
         apply(lambda x: 1/suma3 if (x["q2019_Arris_Group"]) == 1 else 0,
               axis=1)
@@ -354,8 +409,7 @@ def differences(sqlContext, f2_2018, f2_2019):
         apply(lambda x: 1 /
               suma3 if (x["q2019_Technicolor"]) == 1 else 0, axis=1)
 
-
-# I create now the new columns indicating the differences between q.
+    # I create now the new columns indicating the differences between q.
     df_union2['difq_ARRIS_Group'] = df_union2['q2019_Arris_Group']\
         - df_union2['q2018_Arris_Group']
 
@@ -365,7 +419,7 @@ def differences(sqlContext, f2_2018, f2_2019):
     df_union2['difq_Technicolor'] = df_union2['q2019_Technicolor']\
         - df_union2['q2018_Technicolor']
 
-# I create now the new columns indicating the differences between p.
+    # I create now the new columns indicating the differences between p.
     df_union2['difp_ARRIS_Group'] = df_union2['p2019_ARRIS_Group']\
         - df_union2['q2018_Arris_Group']
 
@@ -375,10 +429,11 @@ def differences(sqlContext, f2_2018, f2_2019):
     df_union2['difp_Technicolor'] = df_union2['p2019_Technicolor']\
         - df_union2['q2018_Technicolor']
 
-# Transforming to spark dataframe.
+    # Transforming to spark dataframe.
     df_union2 = sqlContext.createDataFrame(df_union2)
     print('Final df with all differences between 2018 and 2019:\n')
-    df_union2.show(truncate=False)
+    df_union2.show(truncate=False, n=100)
+    return df_union2
 
 
 differences(sqlContext, f2_2018, f2_2019)
