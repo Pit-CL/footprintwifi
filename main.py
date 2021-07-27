@@ -322,7 +322,7 @@ def differences(sqlContext, f2_2018, f2_2019):
         sqlContext (context): Pyspark environment.
         f2_2018 (Spark dataframe): It's contain all 2018 with above futures
         f2_2019 (Spark dataframe): It's contain all 2019 with above futures.
-  
+
     Returns:
     Spark dataframe: Spark dataframe that contain futures before differences
     between years.
@@ -345,73 +345,73 @@ def differences(sqlContext, f2_2018, f2_2019):
         f2_2018 = f2_2018.withColumn(column, lit(None))
 
     # Create a new df with 2018 plus all 2019 that doesn't exist in 2018.
-    df_union2 = in_2019_not_2018.unionByName(f2_2018)
-    df_union2 = df_union2.na.fill(0)
+    df_union3 = in_2019_not_2018.unionByName(f2_2018)
+    df_union3 = df_union3.na.fill(0)
     print('This df contains all data to process the differences')
-    df_union2.show(truncate=False)
+    df_union3.show(truncate=False)
 
     # Suming 2018 q's.
-    df_union2 = df_union2.toPandas()
-    suma2 = df_union2['q2018_Arris_Group'].sum() +\
-        df_union2['q2018_Cisco_Systems_Inc'].sum() +\
-        df_union2['q2018_Technicolor'].sum()
+    df_union3 = df_union3.toPandas()
+    suma2 = df_union3['q2018_Arris_Group'].sum() +\
+        df_union3['q2018_Cisco_Systems_Inc'].sum() +\
+        df_union3['q2018_Technicolor'].sum()
 
     # Apply the correct formula to get de p value for 2018.
-    df_union2['p2018_ARRIS_Group'] = df_union2.\
+    df_union3['p2018_ARRIS_Group'] = df_union3.\
         apply(lambda x: 1/suma2 if (x["q2018_Arris_Group"]) == 1 else 0,
               axis=1)
 
-    df_union2['p2018_Cisco_Systems_Inc'] = df_union2.\
+    df_union3['p2018_Cisco_Systems_Inc'] = df_union3.\
         apply(lambda x: 1/suma2 if (x["q2018_Cisco_Systems_Inc"]) == 1 else 0,
               axis=1)
 
-    df_union2['p2018_Technicolor'] = df_union2.\
+    df_union3['p2018_Technicolor'] = df_union3.\
         apply(lambda x: 1 /
               suma2 if (x["q2018_Technicolor"]) == 1 else 0, axis=1)
 
     # Suming 2019 q's.
-    suma3 = df_union2['q2019_Arris_Group'].sum() +\
-        df_union2['q2019_Cisco_Systems_Inc'].sum() +\
-        df_union2['q2019_Technicolor'].sum()
+    suma3 = df_union3['q2019_Arris_Group'].sum() +\
+        df_union3['q2019_Cisco_Systems_Inc'].sum() +\
+        df_union3['q2019_Technicolor'].sum()
 
     # Apply the correct formula to get de p value for 2019.
-    df_union2['p2019_ARRIS_Group'] = df_union2.\
+    df_union3['p2019_ARRIS_Group'] = df_union3.\
         apply(lambda x: 1/suma3 if (x["q2019_Arris_Group"]) == 1 else 0,
               axis=1)
 
-    df_union2['p2019_Cisco_Systems_Inc'] = df_union2.\
+    df_union3['p2019_Cisco_Systems_Inc'] = df_union3.\
         apply(lambda x: 1/suma3 if (x["q2019_Cisco_Systems_Inc"]) == 1 else 0,
               axis=1)
 
-    df_union2['p2019_Technicolor'] = df_union2.\
+    df_union3['p2019_Technicolor'] = df_union3.\
         apply(lambda x: 1 /
               suma3 if (x["q2019_Technicolor"]) == 1 else 0, axis=1)
 
     # I create now the new columns indicating the differences between q.
-    df_union2['difq_ARRIS_Group'] = df_union2['q2019_Arris_Group']\
-        - df_union2['q2018_Arris_Group']
+    df_union3['difq_ARRIS_Group'] = df_union3['q2019_Arris_Group']\
+        - df_union3['q2018_Arris_Group']
 
-    df_union2['difq_Cisco_Systems_Inc'] = df_union2['q2019_Cisco_Systems_Inc']\
-        - df_union2['q2018_Cisco_Systems_Inc']
+    df_union3['difq_Cisco_Systems_Inc'] = df_union3['q2019_Cisco_Systems_Inc']\
+        - df_union3['q2018_Cisco_Systems_Inc']
 
-    df_union2['difq_Technicolor'] = df_union2['q2019_Technicolor']\
-        - df_union2['q2018_Technicolor']
+    df_union3['difq_Technicolor'] = df_union3['q2019_Technicolor']\
+        - df_union3['q2018_Technicolor']
 
     # I create now the new columns indicating the differences between p.
-    df_union2['difp_ARRIS_Group'] = df_union2['p2019_ARRIS_Group']\
-        - df_union2['q2018_Arris_Group']
+    df_union3['difp_ARRIS_Group'] = df_union3['p2019_ARRIS_Group']\
+        - df_union3['q2018_Arris_Group']
 
-    df_union2['difp_Cisco_Systems_Inc'] = df_union2['p2019_Cisco_Systems_Inc']\
-        - df_union2['q2018_Cisco_Systems_Inc']
+    df_union3['difp_Cisco_Systems_Inc'] = df_union3['p2019_Cisco_Systems_Inc']\
+        - df_union3['q2018_Cisco_Systems_Inc']
 
-    df_union2['difp_Technicolor'] = df_union2['p2019_Technicolor']\
-        - df_union2['q2018_Technicolor']
+    df_union3['difp_Technicolor'] = df_union3['p2019_Technicolor']\
+        - df_union3['q2018_Technicolor']
 
     # Transforming to spark dataframe.
-    df_union2 = sqlContext.createDataFrame(df_union2)
+    df_union3 = sqlContext.createDataFrame(df_union3)
     print('Final df with all differences between 2018 and 2019:\n')
-    df_union2.show(truncate=False, n=100)
-    return df_union2
+    df_union3.show(truncate=False, n=100)
+    return df_union3
 
 
 differences(sqlContext, f2_2018, f2_2019)
