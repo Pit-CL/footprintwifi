@@ -327,7 +327,7 @@ def differences(sqlContext, f2_2018, f2_2019):
     Spark dataframe: Spark dataframe that contain futures before differences
     between years.
     """
-    # Now i have to add the new futures.
+
     # f2_2019.subtract(f2_2018) gets the difference of f2_2018
     # from f2_2019. So the rows that are present in f2_2019
     # but not present in f2_2018 will be returned
@@ -374,6 +374,19 @@ def differences(sqlContext, f2_2018, f2_2019):
         df_union3['q2019_Cisco_Systems_Inc'].sum() +\
         df_union3['q2019_Technicolor'].sum()
 
+    # Filling all 2019.
+    df_union3['q2019_Arris_Group'] = df_union3.\
+        apply(lambda x: 1 if (x["Fabricante"]) == 'ARRIS Group, Inc.' else 0,
+              axis=1)
+
+    df_union3['q2019_Cisco_Systems_Inc'] = df_union3.\
+        apply(lambda x: 1 if (x["Fabricante"]) == 'Cisco Systems, Inc' else 0,
+              axis=1)
+
+    df_union3['q2019_Technicolor'] = df_union3.\
+        apply(lambda x: 1 if (x["Fabricante"]) ==
+              'Technicolor CH USA Inc.' else 0, axis=1)
+
     # Apply the correct formula to get de p value for 2019.
     df_union3['p2019_ARRIS_Group'] = df_union3.\
         apply(lambda x: 1/suma3 if (x["q2019_Arris_Group"]) == 1 else 0,
@@ -415,3 +428,5 @@ def differences(sqlContext, f2_2018, f2_2019):
 
 
 differences(sqlContext, f2_2018, f2_2019)
+
+# Creating at least 10 new futures.
