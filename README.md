@@ -47,6 +47,8 @@ Entrenar el modelo usando el algoritmo Gradient Boosting Trees
 (en particular usando las implementaciones XGBoost o LightGBM),
 para un set de parámetros fijo (exploratorio).
 
+------------------------------------------------------------------------------
+
 Gather information about wifi footprint and based on the information predict
 for example, which Manufacturer will be installed.
 It is recommended to install the requirements in an isolated environment as they are
