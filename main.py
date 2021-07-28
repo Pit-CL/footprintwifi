@@ -436,9 +436,18 @@ differences(sqlContext, f2_2018, f2_2019)
 
 # Creating at least 10 new futures.
 def scaling(sqlContext, f2_2018, f2_2019, differences):
+    """MinMax Scaler for all q and p columns.
+
+    Args:
+        sqlContext (Context): Pyspark environment.
+        f2_2018 (Spark Dataframe): It's cointain the data from 2018.
+        f2_2019 (Spark Dataframe): It's contain the data from 2019.
+        differences (Function): It's get a spark dataframe with differences
+        futures.
+    """
     # UDF for converting column type from vector to double type
-    unlist = udf(lambda x: round(float(list(x)[0]), 4), DoubleType())
     df_to_scale = differences(sqlContext, f2_2018, f2_2019)
+    unlist = udf(lambda x: round(float(list(x)[0]), 4), DoubleType())
 
     # Iterating over columns to be scaled
     for i in ['q2019_Arris_Group', 'q2019_Cisco_Systems_Inc',
