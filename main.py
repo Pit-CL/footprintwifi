@@ -4,8 +4,12 @@ import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
-from pyspark.sql.functions import expr, countDistinct, lit
+from pyspark.sql.functions import expr, countDistinct, lit, udf
 from shapely import wkt
+from pyspark.ml.feature import MinMaxScaler
+from pyspark.ml.feature import VectorAssembler
+from pyspark.ml import Pipeline
+from pyspark.sql.types import DoubleType
 findspark.init()  # Con este no me tira error de JVM.
 
 # Naming the Master and de app.
@@ -427,6 +431,35 @@ def differences(sqlContext, f2_2018, f2_2019):
     return df_union3
 
 
-differences(sqlContext, f2_2018, f2_2019)
+df_to_scale = differences(sqlContext, f2_2018, f2_2019)
 
 # Creating at least 10 new futures.
+# UDF for converting column type from vector to double type
+unlist = udf(lambda x: round(float(list(x)[0]), 4), DoubleType())
+
+# Iterating over columns to be scaled
+for i in ['q2019_Arris_Group', 'q2019_Cisco_Systems_Inc',
+          'q2019_Technicolor', 'p2019_ARRIS_Group',
+          'p2019_Cisco_Systems_Inc', 'p2019_Technicolor',
+          'q2018_Arris_Group', 'q2018_Cisco_Systems_Inc',
+          'q2018_Technicolor', 'p2018_ARRIS_Group',
+          'p2018_Cisco_Systems_Inc', 'p2018_Technicolor',
+          'difq_ARRIS_Group', 'difq_Cisco_Systems_Inc',
+          'difq_Technicolor', 'difp_ARRIS_Group',
+          'difp_Cisco_Systems_Inc', 'difp_Technicolor']:
+
+    # VectorAssembler Transformation - Converting column to vector type
+    assembler = VectorAssembler(inputCols=[i], outputCol=i+'_Vect')
+
+    # MinMaxScaler Transformation
+    scaler = MinMaxScaler(inputCol=i+'_Vect', outputCol=i+'_Scaled')
+
+    # Pipeline of VectorAssembler and MinMaxScaler
+    pipeline = Pipeline(stages=[assembler, scaler])
+
+    # Fitting pipeline on dataframe
+    df_to_scale = pipeline.fit(df_to_scale).transform(df_to_scale)\
+        .withColumn(i+'_Scaled', unlist(i+'_Scaled')).drop(i+'_Vect')
+
+print('Df After Scaling :')
+df_to_scale.show(50)
