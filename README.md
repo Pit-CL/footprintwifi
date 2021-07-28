@@ -47,6 +47,49 @@ Entrenar el modelo usando el algoritmo Gradient Boosting Trees
 (en particular usando las implementaciones XGBoost o LightGBM),
 para un set de parámetros fijo (exploratorio).
 
+Gather information about wifi footprint and based on the information predict
+for example, which Manufacturer will be installed.
+It is recommended to install the requirements in an isolated environment as they are
+libraries that usually generate conflicts for their versions.
 
+You must download the latest files from https://www.mylnikov.org/download
+of the year 2017, 2018 and 2019. Then you must name the three files as
+wifi_XXXX.csv where XXXX corresponds to the year, you must download the file
+out.txt from http://standards-oui.ieee.org/oui/oui.txt
+
+Inside the script do not forget to indicate the path to the path that contains the files
+that you downloaded, the variable inside the script is named FilePath.
+
+All these files must be stored in the same folder.
+Finally remember that if you run it on your local machine you must have it enabled
+Spark - to sparkle.
+
+Sprint 2: Data Ready I
+Create functions to perform build the following features for each network
+Wifi:
+Maker
+Geographic information (city, commune, census zone, block)
+Create functions to perform build the following characteristics for each
+ city, commune, census zone or each block:
+Number of Wi-Fi networks from manufacturer X
+Proportion of Wi-Fi networks of manufacturer X
+
+Sprint 3: Data Ready II
+Based on the functions created in sprint 2, implement functions to
+create the following characteristics for each city, commune, census tract or block:
+Difference in number of Wi-Fi networks of manufacturer F between two
+YY-ZZ-XXXX and AA-BB-CCCC landfills.
+Difference in proportion of Wi-Fi networks of manufacturer F between two
+YY-ZZ-XXXX and AA-BB-CCCC landfills.
+Implement at least 20 additional features, at the discretion of each group.
+
+Sprint 4: Data mapped x algorithm I
+Implement a function that generates the dependent variable to predict. Must be
+define if the prediction is going to be only spatial, or spatio-temporal.
+Build the final “board” that will enter the algorithm (partitioning by
+train / test / validation)
+Train the model using the Gradient Boosting Trees algorithm
+(in particular using the XGBoost or LightGBM implementations),
+for a fixed (exploratory) parameter set.
 
 

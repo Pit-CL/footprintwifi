@@ -48,7 +48,7 @@ print('==============')
 print('Sprint 1')
 print('==============')
 df_unidos = ((df_2017.union(df_2018)).union(df_2019)).distinct()
-print('El dataframe que contiene todos los csv es el siguiente:\n')
+print('All csv files dataframe:\n')
 df_unidos.show(truncate=False)
 df_unidos = df_unidos.drop('updated', 'data')
 
@@ -92,7 +92,7 @@ def mac_y_fabricante(f1_fabricante):
         .withColumn('Media_mac', expr('substring(bssid,7,length(bssid)-6)')).\
         drop('bssid')
 
-    print('El dataframe de Santiago es el siguiente:\n')
+    print('Santiago´s dataframe:\n')
     f1_fabricante.show()
     return f1_fabricante
 
@@ -118,7 +118,7 @@ with open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/oui.csv',
 df_oui = sqlContext.read.csv('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
                              'sprint1/oui.csv',
                              header=False)
-print('El dataframe del archivo OUI.txt es el siguiente:\n')
+print('OUI.txt´s dataframe:\n')
 df_oui.show(truncate=False)
 
 # Opening shape file.
@@ -162,7 +162,7 @@ def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     f1_fabricante = f1_fabricante.drop('_c0')
 
     f1_fabricante = f1_fabricante.withColumnRenamed('_c1', 'Fabricante')
-    print('El dataframe con el primer future es el siguiente:\n')
+    print('First future dataframe:\n')
     f1_fabricante.show(truncate=False)
 
     # Tranform df_stgo to pandas dataframe to work with geopandas.
@@ -194,7 +194,7 @@ def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     # Converting to pyspark.
     f1_georeferencia = sqlContext.createDataFrame(join_stgo_manzana)
 
-    print('Dataset con el nuevo future de información geográfica agregado\n')
+    print('Dataframe with geo futures\n')
     f1_georeferencia.show(truncate=False)
     return f1_georeferencia
 
@@ -266,7 +266,7 @@ def lamba_rellenar(sqlContext, f1_georeferencia):
               'Technicolor CH USA Inc.' else 0, axis=1)
 
     f2_sum_prop = sqlContext.createDataFrame(f1_georeferencia)
-    print('El df resultante que incluye los futures del sprint dos es:\n')
+    print('Final df for Sprint 2:\n')
     f2_sum_prop.show(truncate=False)
     return f2_sum_prop
 
@@ -472,7 +472,7 @@ def scaling(sqlContext, f2_2018, f2_2019, differences):
         df_to_scale = pipeline.fit(df_to_scale).transform(df_to_scale)\
             .withColumn(i+'_Scaled', unlist(i+'_Scaled')).drop(i+'_Vect')
 
-    print('Df After Scaling :')
+    print('Final df Sprint3 after Scaling :')
     df_to_scale.show(n=50)
 
 
