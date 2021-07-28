@@ -3,7 +3,7 @@
 ### Profesor: Oscar Peredo.
 
 Reunir información sobre footprint wifi y en base a la información predecir
-por ejemplo que Fabricante se instalará en una cierta zona.
+por ejemplo, qué Fabricante se instalará.
 Se recomienda instalar los requerimientos en un entorno aislado ya que son
 librerías que suelen generar conflictos por sus versiones.
 
