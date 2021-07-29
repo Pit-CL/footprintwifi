@@ -11,14 +11,23 @@ from pyspark.ml import Pipeline
 from pyspark.sql.types import DoubleType
 findspark.init()  # Con este no me tira error de JVM.
 
-# Naming the Master and de app.
-conf = SparkConf().setMaster("local").setAppName("Tarea Analisis de BigData")
 
-# Starting Spark Cluster.
-sc = SparkContext.getOrCreate(conf=conf)
+def context():
+    """Environment context.
+    """
+    
+    # Naming the Master and de app.
+    conf = SparkConf().setMaster("local").setAppName("Tarea Analisis de BigData")
 
-# Starting SqlContext from sc.
-sqlContext = SQLContext(sc)
+    # Starting Spark Cluster.
+    sc = SparkContext.getOrCreate(conf=conf)
+
+    # Starting SqlContext from sc.
+    sqlContext = SQLContext(sc)
+    return sqlContext
+
+
+sqlContext = context()
 
 # I/O
 # We can use only 2019, because it is contain all data from past years.
