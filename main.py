@@ -29,8 +29,6 @@ def context():
 
 sqlContext = context()
 
-# I/O
-# We can use only 2019, because it is contain all data from past years.
 FilePath = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data'
 
 
