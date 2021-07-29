@@ -422,7 +422,7 @@ def nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante, df_oui,
         .withColumnRenamed('p_Cisco_Systems_Inc', 'p2019_Cisco_Systems_Inc')\
         .withColumnRenamed('p_Technicolor', 'p2019_Technicolor')
 
-# Final dataframes for years 2018 and 2019.
+    # Final dataframes for years 2018 and 2019.
     print('Final 2018 dataframe after drop duplicates:\n')
     f2_2018.show(truncate=False)
     print('Final 2019 dataframe after drop duplicates:\n')
