@@ -85,8 +85,7 @@ OUI.txt´s dataframe:
 +------+------------------------------------------------------------+
 only showing top 20 rows
 
-El shape que contiene los datos solicitados es Manzana Precensal:
-
+Shape file
        COD_ZON  ...                                           geometry
 0            3  ...  POLYGON ((-70.72166 -33.47385, -70.72197 -33.4...
 1            3  ...  POLYGON ((-70.72136 -33.47420, -70.72160 -33.4...
