@@ -102,7 +102,7 @@ def union_original_df(df_2017, df_2018, df_2019):
 df_unidos = union_original_df(df_2017, df_2018, df_2019)
 
 
-def solo_santiago(df_unidos):
+def santiago_only(df_unidos):
     """It's get only Santiago city from dataset.
 
     Args:
@@ -118,9 +118,9 @@ def solo_santiago(df_unidos):
     return f1_fabricante
 
 
-f1_fabricante = solo_santiago(df_unidos)
+f1_fabricante = santiago_only(df_unidos)
 
-def mac_y_fabricante(f1_fabricante):
+def mac_maker(f1_fabricante):
     """It's create two new columns with Id_fabricante and Media_mac.
 
     Args:
@@ -142,7 +142,7 @@ def mac_y_fabricante(f1_fabricante):
     return f1_fabricante
 
 
-f1_fabricante = mac_y_fabricante(f1_fabricante)
+f1_fabricante = mac_maker(f1_fabricante)
 
 
 def dict_maker_id():
@@ -287,7 +287,7 @@ df_union2 = future_georef(sqlContext, f1_fabricante, df_oui,
                           Manzana_Precensal)
 
 
-def lamba_rellenar(sqlContext, f1_georeferencia):
+def quantity_proportion(sqlContext, f1_georeferencia):
     """It's get the quantity and proportion of all wifi makers plus the above
     future.
 
@@ -338,7 +338,7 @@ def lamba_rellenar(sqlContext, f1_georeferencia):
     return f2_sum_prop
 
 
-lamba_rellenar(sqlContext, df_union2)
+quantity_proportion(sqlContext, df_union2)
 
 print('==============')
 print('Sprint 3')
@@ -386,8 +386,9 @@ def eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante, df_oui,
     return f2_2018
 
 
-f2_2018 = eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante,
-                   df_oui, Manzana_Precensal, future_georef, lamba_rellenar)
+f2_2018 = eighteen(sqlContext, df_2018, santiago_only, mac_maker,
+                   df_oui, Manzana_Precensal, future_georef,
+                   quantity_proportion)
 
 # Year 2019.
 print('==============')
@@ -436,8 +437,9 @@ def nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante, df_oui,
     return f2_2019
 
 
-f2_2019 = nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante,
-                   df_oui, Manzana_Precensal, future_georef, lamba_rellenar,
+f2_2019 = nineteen(sqlContext, df_2019, santiago_only, mac_maker,
+                   df_oui, Manzana_Precensal, future_georef,
+                   quantity_proportion,
                    f2_2018)
 
 
