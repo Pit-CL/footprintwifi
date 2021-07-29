@@ -138,7 +138,6 @@ def mac_y_fabricante(f1_fabricante):
 f1_fabricante = mac_y_fabricante(f1_fabricante)
 
 
-# Working with text file.
 def dict_maker_id():
     """It's generate a dictionary that contains the id and the makers names.
 
