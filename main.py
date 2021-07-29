@@ -4,7 +4,7 @@ import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
 import geopandas as gpd
-from pyspark.sql.functions import expr, countDistinct, lit, udf
+from pyspark.sql.functions import expr, lit, udf
 from shapely import wkt
 from pyspark.ml.feature import MinMaxScaler, VectorAssembler, StringIndexer
 from pyspark.ml import Pipeline
@@ -95,7 +95,6 @@ def union_original_df(df_2017, df_2018, df_2019):
 df_unidos = union_original_df(df_2017, df_2018, df_2019)
 
 
-# Df for Santiago only.
 def solo_santiago(df_unidos):
     """It's get only Santiago city from dataset.
 
@@ -114,9 +113,6 @@ def solo_santiago(df_unidos):
 
 f1_fabricante = solo_santiago(df_unidos)
 
-
-# Final df of Stgo.
-# Dividing column bssid into Media_mac and Id_fabricante.
 def mac_y_fabricante(f1_fabricante):
     """It's create two new columns with Id_fabricante and Media_mac.
 
@@ -162,7 +158,6 @@ def dict_maker_id():
 dict_vendor_id = dict_maker_id()
 
 
-# Creating a csv file for better manipulation.
 def to_csv(dict_vendor_id):
     """Converting dictionary to csv.
 
@@ -178,7 +173,6 @@ def to_csv(dict_vendor_id):
 to_csv(dict_vendor_id)
 
 
-# Create text file dataframe.
 def oui_dataframe(sqlContext):
     """It's create the oui spark dataframe
 
@@ -199,7 +193,6 @@ def oui_dataframe(sqlContext):
 df_oui = oui_dataframe(sqlContext)
 
 
-# Opening shape file.
 def shape_file():
     """ Open and clean.
     """
@@ -225,10 +218,6 @@ print('Sprint 2')
 print('==============')
 
 
-# Making futures.
-# Fabricante.
-# Join the df_stgo and df_oui through a join function and also make where
-# manufacturer_id is identical to _c0 of the df_oui.
 def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     """It's get the geo future.
 
@@ -242,6 +231,9 @@ def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     Returns:
         Spark dataframe: Spark dataframe that contain the geo future.
     """
+
+    # Join the df_stgo and df_oui through a join function and also make where
+    # manufacturer_id is identical to _c0 of the df_oui.
     f1_fabricante = f1_fabricante.join(df_oui).\
         where(f1_fabricante["Id_fabricante"] == df_oui["_c0"])
 
@@ -289,23 +281,6 @@ df_union2 = future_georef(sqlContext, f1_fabricante, df_oui,
                           Manzana_Precensal)
 
 
-# Reviewing the numbers of different makers.
-# df_temp1 = f1_georeferencia.select(countDistinct("Fabricante"))
-# df_temp1.show()
-
-# Reviewing null values.
-# from pyspark.sql.functions import isnan, when, count, col
-# fab_info_geo.select([count(when(isnan(c), c)).alias(c) for c in fab_info_geo.
-#                      columns]).show()
-
-# Counting the occurrence of every maker.
-# f1_georeferencia.groupBy('Fabricante').count().orderBy('count',
-#                                                        ascending=False)\
-#                                                       .show(truncate=False)
-
-# With the info above I made the decision to add the first 3 manufacturers
-# as futures.Step to pandas to apply the apply function and lambda function
-# and put a 1 where it finds the manufacturer's name and 0 in other cases.
 def lamba_rellenar(sqlContext, f1_georeferencia):
     """It's get the quantity and proportion of all wifi makers plus the above
     future.
@@ -618,5 +593,3 @@ def scaling(sqlContext, f2_2018, f2_2019, differences):
 
 
 scaling(sqlContext, f2_2018, f2_2019, differences)
-
-
