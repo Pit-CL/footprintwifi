@@ -6,8 +6,7 @@ import csv
 import geopandas as gpd
 from pyspark.sql.functions import expr, countDistinct, lit, udf
 from shapely import wkt
-from pyspark.ml.feature import MinMaxScaler
-from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.feature import MinMaxScaler, VectorAssembler, StringIndexer
 from pyspark.ml import Pipeline
 from pyspark.sql.types import DoubleType
 findspark.init()  # Con este no me tira error de JVM.
@@ -25,32 +24,75 @@ sqlContext = SQLContext(sc)
 # We can use only 2019, because it is contain all data from past years.
 FilePath = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data'
 
-FileName1 = 'wifi_2017.csv'
-FileName2 = 'wifi_2018.csv'
-FileName3 = 'wifi_2019.csv'
 
-FullPath1 = FilePath + '/' + FileName1
-FullPath2 = FilePath + '/' + FileName2
-FullPath3 = FilePath + '/' + FileName3
+def open_files(sqlContext, FilePath):
+    """Opening files.
 
-df_2017 = sqlContext.read.csv(FullPath1, header=True)
-df_2018 = sqlContext.read.csv(FullPath2, header=True)
-df_2019 = sqlContext.read.csv(FullPath3, header=True)
+    Args:
+        sqlContext (Context): Pyspark environment.
+        FilePath (String): Path where the files are.
 
-df_2017 = df_2017.withColumnRenamed('data_source', 'data')
+    Returns:
+        Spark dataframe: Spark dataframes of 2017, 2018 and 2019.
+    """
+    FileName1 = 'wifi_2017.csv'
+    FileName2 = 'wifi_2018.csv'
+    FileName3 = 'wifi_2019.csv'
 
-df_2017 = df_2017.drop('range', 'created')
+    FullPath1 = FilePath + '/' + FileName1
+    FullPath2 = FilePath + '/' + FileName2
+    FullPath3 = FilePath + '/' + FileName3
+
+    df_2017 = sqlContext.read.csv(FullPath1, header=True)
+    df_2018 = sqlContext.read.csv(FullPath2, header=True)
+    df_2019 = sqlContext.read.csv(FullPath3, header=True)
+    return df_2017, df_2018, df_2019
+
+
+df_2017, df_2018, df_2019 = open_files(sqlContext, FilePath)
+
+
+def clean_2017(df_2017):
+    """Cleaning 2017.
+
+    Args:
+        df_2017 (Spark dataframe): Spark dataframe than contain 2017.
+    """
+    df_2017 = df_2017.withColumnRenamed('data_source', 'data')
+
+    df_2017 = df_2017.drop('range', 'created')
 
 # Sorting columns.
-df_2017 = df_2017.select('id', 'bssid', 'lat', 'lon', 'updated', 'data')
+    df_2017 = df_2017.select('id', 'bssid', 'lat', 'lon', 'updated', 'data')
+    return df_2017
+
+
+df_2017 = clean_2017(df_2017)
 
 print('==============')
 print('Sprint 1')
 print('==============')
-df_unidos = ((df_2017.union(df_2018)).union(df_2019)).distinct()
-print('All csv files dataframe:\n')
-df_unidos.show(truncate=False)
-df_unidos = df_unidos.drop('updated', 'data')
+
+
+def union_original_df(df_2017, df_2018, df_2019):
+    """Applying union to all df's.
+
+    Args:
+        df_2017 (Spark dataframe): It's contain data regarding 2017.
+        df_2018 (Spark dataframe): It's contain data regarding 2018.
+        df_2019 (Spark dataframe): It's contain data regarding 2019.
+
+    Returns:
+        Spark dataframe: Union between above df's.
+    """
+    df_unidos = ((df_2017.union(df_2018)).union(df_2019)).distinct()
+    print('All csv files dataframe:\n')
+    df_unidos.show(truncate=False)
+    df_unidos = df_unidos.drop('updated', 'data')
+    return df_unidos
+
+
+df_unidos = union_original_df(df_2017, df_2018, df_2019)
 
 
 # Df for Santiago only.
@@ -99,40 +141,84 @@ def mac_y_fabricante(f1_fabricante):
 
 f1_fabricante = mac_y_fabricante(f1_fabricante)
 
-# Working with text file.
-dict_vendor_id = dict()
 
-for lig in open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/'
-                'oui.txt'):
-    if 'base 16' in lig:
-        num, sep, txt = lig.strip().partition('(base 16)')
-        dict_vendor_id[num.strip()] = txt.strip()
+# Working with text file.
+def dict_maker_id():
+    """It's generate a dictionary that contains the id and the makers names.
+
+    Returns:
+        Dictionary: It's contain the id and the makers name.
+    """
+    dict_vendor_id = dict()
+
+    for lig in open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/'
+                    'oui.txt'):
+        if 'base 16' in lig:
+            num, sep, txt = lig.strip().partition('(base 16)')
+            dict_vendor_id[num.strip()] = txt.strip()
+    return dict_vendor_id
+
+
+dict_vendor_id = dict_maker_id()
+
 
 # Creating a csv file for better manipulation.
-with open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/oui.csv',
-          'w') as f:
-    w = csv.writer(f)
-    w.writerows(dict_vendor_id.items())
+def to_csv(dict_vendor_id):
+    """Converting dictionary to csv.
 
-# Create text file's df
-df_oui = sqlContext.read.csv('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
-                             'sprint1/oui.csv',
-                             header=False)
-print('OUI.txt´s dataframe:\n')
-df_oui.show(truncate=False)
+    Args:
+        dict_vendor_id (Dictionary): It's contain the vendor id and the name.
+    """
+    with open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/oui.csv',
+              'w') as f:
+        w = csv.writer(f)
+        w.writerows(dict_vendor_id.items())
+
+
+to_csv(dict_vendor_id)
+
+
+# Create text file dataframe.
+def oui_dataframe(sqlContext):
+    """It's create the oui spark dataframe
+
+    Args:
+        sqlContext (context): Pyspark environment.
+
+    Returns:
+        Spark dataframe: It's contain the id and the name of the makers.
+    """
+    df_oui = sqlContext.read.csv('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
+                                 'sprint1/oui.csv',
+                                 header=False)
+    print('OUI.txt´s dataframe:\n')
+    df_oui.show(truncate=False)
+    return df_oui
+
+
+df_oui = oui_dataframe(sqlContext)
+
 
 # Opening shape file.
-Manzana_Precensal = gpd.read_file('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
-                                  'sprint1/data/'
-                                  'Manzana_Precensal.shp')
+def shape_file():
+    """ Open and clean.
+    """
+    Manzana_Precensal = gpd.read_file('/home/rafa/Dropbox/Linux_MDS/'
+                                      'BDAnalytics/'
+                                      'sprint1/data/'
+                                      'Manzana_Precensal.shp')
 
-# Drop unnecessary columns.
-Manzana_Precensal = Manzana_Precensal.drop(['DES_REGI', 'MANZENT', 'COMUNA',
-                                            'PROVINCIA', 'DES_PROV', 'REGION',
-                                            'COD_DIS'], axis=1)
+    # Drop unnecessary columns.
+    Manzana_Precensal = Manzana_Precensal.drop(['DES_REGI', 'MANZENT', 'COMUNA',
+                                                'PROVINCIA', 'DES_PROV',
+                                                'REGION', 'COD_DIS'], axis=1)
 
-print('El shape que contiene los datos solicitados es Manzana Precensal:\n')
-print(Manzana_Precensal)
+    print('Shape file')
+    print(Manzana_Precensal)
+    return Manzana_Precensal
+
+
+Manzana_Precensal = shape_file()
 
 print('==============')
 print('Sprint 2')
@@ -281,41 +367,97 @@ print('==============')
 print('==============')
 print('Steps for 2018')
 print('==============')
-df_2018 = df_2018.drop('updated', 'data')
-df_2018 = solo_santiago(df_2018)
-f1_fab_2018 = mac_y_fabricante(df_2018)
-f1_geo_2018 = future_georef(sqlContext, f1_fab_2018, df_oui, Manzana_Precensal)
-f2_2018 = lamba_rellenar(sqlContext, f1_geo_2018).distinct()
-f2_2018 = f2_2018\
-    .withColumnRenamed('q_Arris_Group', 'q2018_Arris_Group')\
-    .withColumnRenamed('q_Cisco_Systems_Inc', 'q2018_Cisco_Systems_Inc')\
-    .withColumnRenamed('q_Technicolor', 'q2018_Technicolor')\
-    .withColumnRenamed('p_ARRIS_Group', 'p2018_ARRIS_Group')\
-    .withColumnRenamed('p_Cisco_Systems_Inc', 'p2018_Cisco_Systems_Inc')\
-    .withColumnRenamed('p_Technicolor', 'p2018_Technicolor')
+
+
+def eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante, df_oui,
+             Manzana_Precensal, future_georef, lamba_rellenar):
+    """Get the futures for sprint 2.
+
+    Args:
+        sqlContext (Context): Pyspark environment.
+        df_2018 (Spark dataframe): It's contain 2018 info.
+        solo_santiago (Function): It's create a df for Santiago only.
+        mac_y_fabricante (Function): It's create two new columns with
+        Id_fabricante and Media_mac.
+        df_oui (Spark dataframe): It's contain the id and name of the makers.
+        Manzana_Precensal (Geopandas): It's contain the info of the shapefile.
+        future_georef (Function): It's create the future with the geo.
+        lamba_rellenar (Function): It's get the quantity and proportion of
+        all wifi makers plus the above future.
+
+    Returns:
+        Spark dataframe: It's contain all futures for sprint 2.
+    """
+    df_2018 = df_2018.drop('updated', 'data')
+    df_2018 = solo_santiago(df_2018)
+    f1_fab_2018 = mac_y_fabricante(df_2018)
+    f1_geo_2018 = future_georef(
+        sqlContext, f1_fab_2018, df_oui, Manzana_Precensal)
+    f2_2018 = lamba_rellenar(sqlContext, f1_geo_2018).distinct()
+    f2_2018 = f2_2018\
+        .withColumnRenamed('q_Arris_Group', 'q2018_Arris_Group')\
+        .withColumnRenamed('q_Cisco_Systems_Inc', 'q2018_Cisco_Systems_Inc')\
+        .withColumnRenamed('q_Technicolor', 'q2018_Technicolor')\
+        .withColumnRenamed('p_ARRIS_Group', 'p2018_ARRIS_Group')\
+        .withColumnRenamed('p_Cisco_Systems_Inc', 'p2018_Cisco_Systems_Inc')\
+        .withColumnRenamed('p_Technicolor', 'p2018_Technicolor')
+
+    return f2_2018
+
+
+f2_2018 = eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante,
+                   df_oui, Manzana_Precensal, future_georef, lamba_rellenar)
 
 # Year 2019.
 print('==============')
 print('Steps for 2019')
 print('==============')
-df_2019 = df_2019.drop('updated', 'data')
-df_2019 = solo_santiago(df_2019)
-f1_fab_2019 = mac_y_fabricante(df_2019)
-f1_geo_2019 = future_georef(sqlContext, f1_fab_2019, df_oui, Manzana_Precensal)
-f2_2019 = lamba_rellenar(sqlContext, f1_geo_2019).distinct()
-f2_2019 = f2_2019\
-    .withColumnRenamed('q_Arris_Group', 'q2019_Arris_Group')\
-    .withColumnRenamed('q_Cisco_Systems_Inc', 'q2019_Cisco_Systems_Inc')\
-    .withColumnRenamed('q_Technicolor', 'q2019_Technicolor')\
-    .withColumnRenamed('p_ARRIS_Group', 'p2019_ARRIS_Group')\
-    .withColumnRenamed('p_Cisco_Systems_Inc', 'p2019_Cisco_Systems_Inc')\
-    .withColumnRenamed('p_Technicolor', 'p2019_Technicolor')
+
+
+def nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante, df_oui,
+             Manzana_Precensal, future_georef, lamba_rellenar, f2_2018):
+    """Get the futures for sprint 2.
+
+    Args:
+        sqlContext (Context): Pyspark environment.
+        df_2019 (Spark dataframe): It's contain 2019 info.
+        solo_santiago (Function): It's create a df for Santiago only.
+        mac_y_fabricante (Function): It's create two new columns with
+        Id_fabricante and Media_mac.
+        df_oui (Spark dataframe): It's contain the id and name of the makers.
+        Manzana_Precensal (Geopandas): It's contain the info of the shapefile.
+        future_georef (Function): It's create the future with the geo.
+        lamba_rellenar (Function): It's get the quantity and proportion of
+        all wifi makers plus the above future.
+
+    Returns:
+        Spark dataframe: It's contain all futures for sprint 2.
+    """
+    df_2019 = df_2019.drop('updated', 'data')
+    df_2019 = solo_santiago(df_2019)
+    f1_fab_2019 = mac_y_fabricante(df_2019)
+    f1_geo_2019 = future_georef(
+        sqlContext, f1_fab_2019, df_oui, Manzana_Precensal)
+    f2_2019 = lamba_rellenar(sqlContext, f1_geo_2019).distinct()
+    f2_2019 = f2_2019\
+        .withColumnRenamed('q_Arris_Group', 'q2019_Arris_Group')\
+        .withColumnRenamed('q_Cisco_Systems_Inc', 'q2019_Cisco_Systems_Inc')\
+        .withColumnRenamed('q_Technicolor', 'q2019_Technicolor')\
+        .withColumnRenamed('p_ARRIS_Group', 'p2019_ARRIS_Group')\
+        .withColumnRenamed('p_Cisco_Systems_Inc', 'p2019_Cisco_Systems_Inc')\
+        .withColumnRenamed('p_Technicolor', 'p2019_Technicolor')
 
 # Final dataframes for years 2018 and 2019.
-print('Final 2018 dataframe after drop duplicates:\n')
-f2_2018.show(truncate=False)
-print('Final 2019 dataframe after drop duplicates:\n')
-f2_2019.show(truncate=False)
+    print('Final 2018 dataframe after drop duplicates:\n')
+    f2_2018.show(truncate=False)
+    print('Final 2019 dataframe after drop duplicates:\n')
+    f2_2019.show(truncate=False)
+    return f2_2019
+
+
+f2_2019 = nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante,
+                   df_oui, Manzana_Precensal, future_georef, lamba_rellenar,
+                   f2_2018)
 
 
 def differences(sqlContext, f2_2018, f2_2019):
@@ -437,7 +579,6 @@ differences(sqlContext, f2_2018, f2_2019)
 # Creating at least 10 new futures.
 def scaling(sqlContext, f2_2018, f2_2019, differences):
     """MinMax Scaler for all q and p columns.
-
     Args:
         sqlContext (Context): Pyspark environment.
         f2_2018 (Spark Dataframe): It's cointain the data from 2018.
@@ -477,3 +618,5 @@ def scaling(sqlContext, f2_2018, f2_2019, differences):
 
 
 scaling(sqlContext, f2_2018, f2_2019, differences)
+
+
