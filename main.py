@@ -167,6 +167,9 @@ def dict_maker_id():
 
 dict_vendor_id = dict_maker_id()
 
+# Creating a csv file that contain the Id_Fabricante and Media_mac
+csv_path = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/oui.csv'
+
 
 def to_csv(dict_vendor_id):
     """Converting dictionary to csv.
@@ -174,8 +177,7 @@ def to_csv(dict_vendor_id):
     Args:
         dict_vendor_id (Dictionary): It's contain the vendor id and the name.
     """
-    with open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/oui.csv',
-              'w') as f:
+    with open(csv_path, 'w') as f:
         w = csv.writer(f)
         w.writerows(dict_vendor_id.items())
 
@@ -192,9 +194,7 @@ def oui_dataframe(sqlContext):
     Returns:
         Spark dataframe: It's contain the id and the name of the makers.
     """
-    df_oui = sqlContext.read.csv('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/'
-                                 'sprint1/oui.csv',
-                                 header=False)
+    df_oui = sqlContext.read.csv(csv_path, header=False)
     print('OUI.txt´s dataframe:\n')
     df_oui.show(truncate=False)
     return df_oui
