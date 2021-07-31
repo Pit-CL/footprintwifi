@@ -93,5 +93,3 @@ train / test / validation)
 Train the model using the Gradient Boosting Trees algorithm
 (in particular using the XGBoost or LightGBM implementations),
 for a fixed (exploratory) parameter set.
-
-

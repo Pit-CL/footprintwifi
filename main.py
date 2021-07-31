@@ -15,9 +15,10 @@ findspark.init()  # Con este no me tira error de JVM.
 def context():
     """Environment context.
     """
-    
+
     # Naming the Master and de app.
-    conf = SparkConf().setMaster("local").setAppName("Tarea Analisis de BigData")
+    conf = SparkConf().setMaster('local').setAppName('Tarea Analisis de'
+                                                     'BigData')
 
     # Starting Spark Cluster.
     sc = SparkContext.getOrCreate(conf=conf)
@@ -120,6 +121,7 @@ def santiago_only(df_unidos):
 
 f1_fabricante = santiago_only(df_unidos)
 
+
 def mac_maker(f1_fabricante):
     """It's create two new columns with Id_fabricante and Media_mac.
 
@@ -144,6 +146,9 @@ def mac_maker(f1_fabricante):
 
 f1_fabricante = mac_maker(f1_fabricante)
 
+# Full path that contain oui.txt
+out_path = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/oui.txt'
+
 
 def dict_maker_id():
     """It's generate a dictionary that contains the id and the makers names.
@@ -153,8 +158,7 @@ def dict_maker_id():
     """
     dict_vendor_id = dict()
 
-    for lig in open('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/'
-                    'oui.txt'):
+    for lig in open(out_path):
         if 'base 16' in lig:
             num, sep, txt = lig.strip().partition('(base 16)')
             dict_vendor_id[num.strip()] = txt.strip()
@@ -198,17 +202,19 @@ def oui_dataframe(sqlContext):
 
 df_oui = oui_dataframe(sqlContext)
 
+# Full path for shape file Manzana Precensal.
+shape_path = ('/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/'
+              'Manzana_Precensal.shp')
+
 
 def shape_file():
     """ Open and clean.
     """
-    Manzana_Precensal = gpd.read_file('/home/rafa/Dropbox/Linux_MDS/'
-                                      'BDAnalytics/'
-                                      'sprint1/data/'
-                                      'Manzana_Precensal.shp')
+    Manzana_Precensal = gpd.read_file(shape_path)
 
     # Drop unnecessary columns.
-    Manzana_Precensal = Manzana_Precensal.drop(['DES_REGI', 'MANZENT', 'COMUNA',
+    Manzana_Precensal = Manzana_Precensal.drop(['DES_REGI', 'MANZENT',
+                                                'COMUNA',
                                                 'PROVINCIA', 'DES_PROV',
                                                 'REGION', 'COD_DIS'], axis=1)
 
