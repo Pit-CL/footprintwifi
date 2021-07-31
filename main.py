@@ -147,7 +147,7 @@ def mac_maker(f1_fabricante):
 f1_fabricante = mac_maker(f1_fabricante)
 
 # Full path that contain oui.txt
-out_path = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/oui.txt'
+oui_path = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/oui.txt'
 
 
 def dict_maker_id():
@@ -158,7 +158,7 @@ def dict_maker_id():
     """
     dict_vendor_id = dict()
 
-    for lig in open(out_path):
+    for lig in open(oui_path):
         if 'base 16' in lig:
             num, sep, txt = lig.strip().partition('(base 16)')
             dict_vendor_id[num.strip()] = txt.strip()
