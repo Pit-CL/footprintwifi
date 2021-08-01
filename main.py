@@ -573,7 +573,7 @@ def scaling(sqlContext, f2_2018, f2_2019, differences):
         f2_2018 (Spark Dataframe): It's cointain the data from 2018.
         f2_2019 (Spark Dataframe): It's contain the data from 2019.
         differences (Function): It's get a spark dataframe with differences
-        futures.
+        between years.
     """
     # UDF for converting column type from vector to double type
     df_to_scale = differences(sqlContext, f2_2018, f2_2019)
