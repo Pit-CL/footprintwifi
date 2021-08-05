@@ -9,6 +9,10 @@ from shapely import wkt
 from pyspark.ml.feature import MinMaxScaler, VectorAssembler, StringIndexer
 from pyspark.ml import Pipeline
 from pyspark.sql.types import DoubleType
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+import lightgbm as lgb
+
 findspark.init()  # Con este no me tira error de JVM.
 
 
@@ -284,7 +288,7 @@ def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     # Converting to pyspark.
     f1_georeferencia = sqlContext.createDataFrame(join_stgo_manzana)
 
-    print('Dataframe with geo futures\n')
+    print('Dataframe with geo features\n')
     f1_georeferencia.show(truncate=False)
     return f1_georeferencia
 
@@ -358,7 +362,7 @@ print('==============')
 
 def eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante, df_oui,
              Manzana_Precensal, future_georef, lamba_rellenar):
-    """Get the futures for sprint 2.
+    """Get the features for sprint 2.
 
     Args:
         sqlContext (Context): Pyspark environment.
@@ -373,7 +377,7 @@ def eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante, df_oui,
         all wifi makers plus the above future.
 
     Returns:
-        Spark dataframe: It's contain all futures for sprint 2.
+        Spark dataframe: It's contain all features for sprint 2.
     """
     df_2018 = df_2018.drop('updated', 'data')
     df_2018 = solo_santiago(df_2018)
@@ -404,7 +408,7 @@ print('==============')
 
 def nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante, df_oui,
              Manzana_Precensal, future_georef, lamba_rellenar, f2_2018):
-    """Get the futures for sprint 2.
+    """Get the features for sprint 2.
 
     Args:
         sqlContext (Context): Pyspark environment.
@@ -419,7 +423,7 @@ def nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante, df_oui,
         all wifi makers plus the above future.
 
     Returns:
-        Spark dataframe: It's contain all futures for sprint 2.
+        Spark dataframe: It's contain all features for sprint 2.
     """
     df_2019 = df_2019.drop('updated', 'data')
     df_2019 = solo_santiago(df_2019)
@@ -455,11 +459,11 @@ def differences(sqlContext, f2_2018, f2_2019):
 
     Args:
         sqlContext (context): Pyspark environment.
-        f2_2018 (Spark dataframe): It's contain all 2018 with above futures
-        f2_2019 (Spark dataframe): It's contain all 2019 with above futures.
+        f2_2018 (Spark dataframe): It's contain all 2018 with above features
+        f2_2019 (Spark dataframe): It's contain all 2019 with above features.
 
     Returns:
-    Spark dataframe: Spark dataframe that contain futures before differences
+    Spark dataframe: Spark dataframe that contain features before differences
     between years.
     """
 
@@ -467,7 +471,7 @@ def differences(sqlContext, f2_2018, f2_2019):
     # from f2_2019. So the rows that are present in f2_2019
     # but not present in f2_2018 will be returned
     in_2019_not_2018 = f2_2019.subtract(f2_2018)
-    print('This df contain the difference between 2018 and 2019 years')
+    print('This df contain the row differences between 2018 and 2019 years')
     in_2019_not_2018.show()
 
     # Create the missing columns in both df's using lit function.
@@ -558,52 +562,149 @@ def differences(sqlContext, f2_2018, f2_2019):
     # Transforming to spark dataframe.
     df_union3 = sqlContext.createDataFrame(df_union3)
     print('Final df with all differences between 2018 and 2019:\n')
-    df_union3.show(truncate=False, n=100)
+    df_union3.show(truncate=False, n=20)
     return df_union3
 
 
 differences(sqlContext, f2_2018, f2_2019)
 
 
-# Creating at least 10 new futures.
-def scaling(sqlContext, f2_2018, f2_2019, differences):
-    """MinMax Scaler for all q and p columns.
+# Creating at least 10 new features.
+# UDF for converting column type from vector to double type
+df_to_scale = differences(sqlContext, f2_2018, f2_2019)
+unlist = udf(lambda x: round(float(list(x)[0]), 4), DoubleType())
+
+# Iterating over columns to be scaled
+for i in ['q2019_Arris_Group', 'q2019_Cisco_Systems_Inc',
+          'q2019_Technicolor', 'p2019_ARRIS_Group',
+          'p2019_Cisco_Systems_Inc', 'p2019_Technicolor',
+          'q2018_Arris_Group', 'q2018_Cisco_Systems_Inc',
+          'q2018_Technicolor', 'p2018_ARRIS_Group',
+          'p2018_Cisco_Systems_Inc', 'p2018_Technicolor',
+          'difq_ARRIS_Group', 'difq_Cisco_Systems_Inc',
+          'difq_Technicolor', 'difp_ARRIS_Group',
+          'difp_Cisco_Systems_Inc', 'difp_Technicolor']:
+
+    # VectorAssembler Transformation - Converting column to vector type
+    assembler = VectorAssembler(inputCols=[i], outputCol=i+'_Vect')
+
+    # MinMaxScaler Transformation
+    scaler = MinMaxScaler(inputCol=i+'_Vect', outputCol=i+'_Scaled')
+
+    # Pipeline of VectorAssembler and MinMaxScaler
+    pipeline = Pipeline(stages=[assembler, scaler])
+
+    # Fitting pipeline on dataframe
+    df_to_scale = pipeline.fit(df_to_scale).transform(df_to_scale)\
+        .withColumn(i+'_Scaled', unlist(i+'_Scaled')).drop(i+'_Vect')
+
+print('Final df Sprint3 after Scaling :')
+df_to_scale.show(n=20)
+
+# Converting categorical data to string indexed format.
+indexer = StringIndexer(inputCols=('Comuna', 'geometry', 'Id_fabricante'),
+                        outputCols=('ComunaIndex', 'geoIndex', 'FabIndex'))
+unlist = udf(lambda x: round(float(list(x)[0]), 4), DoubleType())
+df_indexed = indexer.fit(df_to_scale).transform(df_to_scale)
+
+# Iterating over columns to be scaled
+for i in ['ComunaIndex', 'geoIndex', 'FabIndex', 'Zona_Censal',
+          'Manzana_Censal']:
+    # VectorAssembler Transformation - Converting column to vector type
+    assembler = VectorAssembler(inputCols=[i], outputCol=i+'_Vect')
+
+    # MinMaxScaler Transformation
+    scaler = MinMaxScaler(inputCol=i+'_Vect', outputCol=i+'_Scaled')
+
+    # Pipeline of VectorAssembler and MinMaxScaler
+    pipeline = Pipeline(stages=[assembler, scaler])
+
+    # Fitting pipeline on dataframe
+    df_indexed = pipeline.fit(df_indexed).transform(df_indexed)\
+        .withColumn(i+'_Scaled', unlist(i+'_Scaled')).drop(i+'_Vect')
+print('Df  after Indexing strings and all data scaled :')
+df_indexed.show()
+
+# Sort the DF to work in predictions.
+final_df = df_indexed.select('q2019_Arris_Group_Scaled',
+                             'q2019_Cisco_Systems_Inc_Scaled',
+                             'q2019_Technicolor_Scaled',
+                             'p2019_ARRIS_Group_Scaled',
+                             'p2019_Cisco_Systems_Inc_Scaled',
+                             'p2019_Technicolor_Scaled',
+                             'q2018_Arris_Group_Scaled',
+                             'q2018_Cisco_Systems_Inc_Scaled',
+                             'q2018_Technicolor_Scaled',
+                             'p2018_ARRIS_Group_Scaled',
+                             'p2018_Cisco_Systems_Inc_Scaled',
+                             'p2018_Technicolor_Scaled',
+                             'difq_ARRIS_Group_Scaled',
+                             'difq_Cisco_Systems_Inc_Scaled',
+                             'difq_Technicolor_Scaled',
+                             'difp_ARRIS_Group_Scaled',
+                             'difp_Cisco_Systems_Inc_Scaled',
+                             'difp_Technicolor_Scaled',
+                             'ComunaIndex_Scaled',
+                             'geoIndex_Scaled',
+                             'FabIndex_Scaled',
+                             'Zona_Censal_Scaled',
+                             'Manzana_Censal_Scaled')
+
+print('Final tableu to use with LightGBM')
+final_df.show()
+
+# Applying LightGBM
+# Dependant variable = 'difq_Cisco_Systems_Inc_Scaled'
+
+
+def LightGBM(final_df):
+    """Applying LightGBM.
+
     Args:
-        sqlContext (Context): Pyspark environment.
-        f2_2018 (Spark Dataframe): It's cointain the data from 2018.
-        f2_2019 (Spark Dataframe): It's contain the data from 2019.
-        differences (Function): It's get a spark dataframe with differences
-        between years.
+        final_df (Spark Dataframe): Final Tableu.
     """
-    # UDF for converting column type from vector to double type
-    df_to_scale = differences(sqlContext, f2_2018, f2_2019)
-    unlist = udf(lambda x: round(float(list(x)[0]), 4), DoubleType())
+    final_df = final_df.toPandas()
 
-    # Iterating over columns to be scaled
-    for i in ['q2019_Arris_Group', 'q2019_Cisco_Systems_Inc',
-              'q2019_Technicolor', 'p2019_ARRIS_Group',
-              'p2019_Cisco_Systems_Inc', 'p2019_Technicolor',
-              'q2018_Arris_Group', 'q2018_Cisco_Systems_Inc',
-              'q2018_Technicolor', 'p2018_ARRIS_Group',
-              'p2018_Cisco_Systems_Inc', 'p2018_Technicolor',
-              'difq_ARRIS_Group', 'difq_Cisco_Systems_Inc',
-              'difq_Technicolor', 'difp_ARRIS_Group',
-              'difp_Cisco_Systems_Inc', 'difp_Technicolor']:
-        # VectorAssembler Transformation - Converting column to vector type
-        assembler = VectorAssembler(inputCols=[i], outputCol=i+'_Vect')
+    X = final_df[['q2019_Arris_Group_Scaled',
+                  'q2019_Cisco_Systems_Inc_Scaled',
+                  'q2019_Technicolor_Scaled',
+                  'p2019_ARRIS_Group_Scaled',
+                  'p2019_Cisco_Systems_Inc_Scaled',
+                  'p2019_Technicolor_Scaled',
+                  'q2018_Arris_Group_Scaled',
+                  'q2018_Cisco_Systems_Inc_Scaled',
+                  'q2018_Technicolor_Scaled',
+                  'p2018_ARRIS_Group_Scaled',
+                  'p2018_Cisco_Systems_Inc_Scaled',
+                  'p2018_Technicolor_Scaled',
+                  'difq_Technicolor_Scaled',
+                  'difp_ARRIS_Group_Scaled',
+                  'difp_Cisco_Systems_Inc_Scaled',
+                  'difp_Technicolor_Scaled',
+                  'difq_ARRIS_Group_Scaled',
+                  'ComunaIndex_Scaled',
+                  'geoIndex_Scaled',
+                  'FabIndex_Scaled',
+                  'Zona_Censal_Scaled',
+                  'Manzana_Censal_Scaled']]
 
-        # MinMaxScaler Transformation
-        scaler = MinMaxScaler(inputCol=i+'_Vect', outputCol=i+'_Scaled')
+    y = final_df['difq_Cisco_Systems_Inc_Scaled']
 
-        # Pipeline of VectorAssembler and MinMaxScaler
-        pipeline = Pipeline(stages=[assembler, scaler])
+    X_train, X_test, y_train, y_test = train_test_split(X, y,
+                                                        test_size=0.2,
+                                                        random_state=0)
 
-        # Fitting pipeline on dataframe
-        df_to_scale = pipeline.fit(df_to_scale).transform(df_to_scale)\
-            .withColumn(i+'_Scaled', unlist(i+'_Scaled')).drop(i+'_Vect')
+    # Build the lightgbm model
+    clf = lgb.LGBMClassifier()
+    clf.fit(X_train, y_train)
 
-    print('Final df Sprint3 after Scaling :')
-    df_to_scale.show(n=50)
+    # Predict the results
+    y_pred = clf.predict(X_test)
+    print('The predictions are', y_pred)
+
+    # View accuracy
+    print('LightGBM Model accuracy score: {0:0.4f}'.format(accuracy_score
+                                                           (y_test, y_pred)))
 
 
-scaling(sqlContext, f2_2018, f2_2019, differences)
+LightGBM(final_df)

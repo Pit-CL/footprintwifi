@@ -3,7 +3,8 @@
 ### Profesor: Oscar Peredo.
 
 Reunir información sobre footprint wifi y en base a la información predecir
-por ejemplo, qué Fabricante se instalará.
+si es que Cisco_Systems_Inc tendrá diferencias en cantidad instalada entre un
+año y otro.
 Se recomienda instalar los requerimientos en un entorno aislado ya que son
 librerías que suelen generar conflictos por sus versiones.
 
@@ -50,7 +51,7 @@ para un set de parámetros fijo (exploratorio).
 ------------------------------------------------------------------------------
 
 Gather information about wifi footprint and based on the information predict
-for example, which Manufacturer will be installed.
+if Cisco_Systems_Inc will have differences between years.
 It is recommended to install the requirements in an isolated environment as they are
 libraries that usually generate conflicts for their versions.
 
