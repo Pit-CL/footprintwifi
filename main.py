@@ -700,6 +700,8 @@ def LightGBM(final_df):
 
     # Predict the results
     y_pred = clf.predict(X_test)
+    Sum = sum(y_pred)
+    print('Wifi hotspot difference for next Year', Sum)
     print('The predictions are', y_pred)
 
     # View accuracy
