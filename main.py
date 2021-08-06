@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from os import truncate
 import findspark
 from pyspark import SparkContext, SparkConf, SQLContext
 import csv
@@ -624,6 +623,7 @@ for i in ['ComunaIndex', 'geoIndex', 'FabIndex', 'Zona_Censal',
         .withColumn(i+'_Scaled', unlist(i+'_Scaled')).drop(i+'_Vect')
 print('Df  after Indexing strings and all data scaled :')
 df_indexed.show()
+df_indexed.printSchema()
 
 # Sort the DF to work in predictions.
 final_df = df_indexed.select('q2019_Arris_Group_Scaled',
@@ -652,6 +652,7 @@ final_df = df_indexed.select('q2019_Arris_Group_Scaled',
 
 print('Final tableu to use with LightGBM')
 final_df.show()
+final_df.printSchema()
 
 # Applying LightGBM
 # Dependant variable = 'difq_Cisco_Systems_Inc_Scaled'
