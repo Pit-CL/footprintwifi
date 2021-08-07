@@ -694,6 +694,60 @@ Df  after Indexing strings and all data scaled :
 +--------+-------------+---------+--------------------+-----------+--------------+----------+--------------------+-----------------+-----------------------+-----------------+--------------------+-----------------------+--------------------+-----------------+-----------------------+-----------------+-----------------+-----------------------+-----------------+----------------+----------------------+----------------+--------------------+----------------------+--------------------+------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+-----------------------+-----------------------------+-----------------------+-----------------------+-----------------------------+-----------------------+-----------+--------+--------+------------------+---------------+---------------+------------------+---------------------+
 only showing top 20 rows
 
+root
+ |-- id: string (nullable = true)
+ |-- Id_fabricante: string (nullable = true)
+ |-- Media_mac: string (nullable = true)
+ |-- Fabricante: string (nullable = true)
+ |-- Zona_Censal: long (nullable = true)
+ |-- Manzana_Censal: long (nullable = true)
+ |-- Comuna: string (nullable = true)
+ |-- geometry: string (nullable = true)
+ |-- q2019_Arris_Group: long (nullable = true)
+ |-- q2019_Cisco_Systems_Inc: long (nullable = true)
+ |-- q2019_Technicolor: long (nullable = true)
+ |-- p2019_ARRIS_Group: double (nullable = true)
+ |-- p2019_Cisco_Systems_Inc: double (nullable = true)
+ |-- p2019_Technicolor: double (nullable = true)
+ |-- q2018_Arris_Group: long (nullable = true)
+ |-- q2018_Cisco_Systems_Inc: long (nullable = true)
+ |-- q2018_Technicolor: long (nullable = true)
+ |-- p2018_ARRIS_Group: double (nullable = true)
+ |-- p2018_Cisco_Systems_Inc: double (nullable = true)
+ |-- p2018_Technicolor: double (nullable = true)
+ |-- difq_ARRIS_Group: long (nullable = true)
+ |-- difq_Cisco_Systems_Inc: long (nullable = true)
+ |-- difq_Technicolor: long (nullable = true)
+ |-- difp_ARRIS_Group: double (nullable = true)
+ |-- difp_Cisco_Systems_Inc: double (nullable = true)
+ |-- difp_Technicolor: double (nullable = true)
+ |-- q2019_Arris_Group_Scaled: double (nullable = true)
+ |-- q2019_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- q2019_Technicolor_Scaled: double (nullable = true)
+ |-- p2019_ARRIS_Group_Scaled: double (nullable = true)
+ |-- p2019_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- p2019_Technicolor_Scaled: double (nullable = true)
+ |-- q2018_Arris_Group_Scaled: double (nullable = true)
+ |-- q2018_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- q2018_Technicolor_Scaled: double (nullable = true)
+ |-- p2018_ARRIS_Group_Scaled: double (nullable = true)
+ |-- p2018_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- p2018_Technicolor_Scaled: double (nullable = true)
+ |-- difq_ARRIS_Group_Scaled: double (nullable = true)
+ |-- difq_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- difq_Technicolor_Scaled: double (nullable = true)
+ |-- difp_ARRIS_Group_Scaled: double (nullable = true)
+ |-- difp_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- difp_Technicolor_Scaled: double (nullable = true)
+ |-- ComunaIndex: double (nullable = false)
+ |-- geoIndex: double (nullable = false)
+ |-- FabIndex: double (nullable = false)
+ |-- ComunaIndex_Scaled: double (nullable = true)
+ |-- geoIndex_Scaled: double (nullable = true)
+ |-- FabIndex_Scaled: double (nullable = true)
+ |-- Zona_Censal_Scaled: double (nullable = true)
+ |-- Manzana_Censal_Scaled: double (nullable = true)
+
 Final tableu to use with LightGBM
 +------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+-----------------------+-----------------------------+-----------------------+-----------------------+-----------------------------+-----------------------+------------------+---------------+---------------+------------------+---------------------+
 |q2019_Arris_Group_Scaled|q2019_Cisco_Systems_Inc_Scaled|q2019_Technicolor_Scaled|p2019_ARRIS_Group_Scaled|p2019_Cisco_Systems_Inc_Scaled|p2019_Technicolor_Scaled|q2018_Arris_Group_Scaled|q2018_Cisco_Systems_Inc_Scaled|q2018_Technicolor_Scaled|p2018_ARRIS_Group_Scaled|p2018_Cisco_Systems_Inc_Scaled|p2018_Technicolor_Scaled|difq_ARRIS_Group_Scaled|difq_Cisco_Systems_Inc_Scaled|difq_Technicolor_Scaled|difp_ARRIS_Group_Scaled|difp_Cisco_Systems_Inc_Scaled|difp_Technicolor_Scaled|ComunaIndex_Scaled|geoIndex_Scaled|FabIndex_Scaled|Zona_Censal_Scaled|Manzana_Censal_Scaled|
@@ -721,6 +775,36 @@ Final tableu to use with LightGBM
 +------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+------------------------+------------------------------+------------------------+-----------------------+-----------------------------+-----------------------+-----------------------+-----------------------------+-----------------------+------------------+---------------+---------------+------------------+---------------------+
 only showing top 20 rows
 
-Wifi hotspot difference for next Year 199.0
+root
+ |-- q2019_Arris_Group_Scaled: double (nullable = true)
+ |-- q2019_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- q2019_Technicolor_Scaled: double (nullable = true)
+ |-- p2019_ARRIS_Group_Scaled: double (nullable = true)
+ |-- p2019_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- p2019_Technicolor_Scaled: double (nullable = true)
+ |-- q2018_Arris_Group_Scaled: double (nullable = true)
+ |-- q2018_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- q2018_Technicolor_Scaled: double (nullable = true)
+ |-- p2018_ARRIS_Group_Scaled: double (nullable = true)
+ |-- p2018_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- p2018_Technicolor_Scaled: double (nullable = true)
+ |-- difq_ARRIS_Group_Scaled: double (nullable = true)
+ |-- difq_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- difq_Technicolor_Scaled: double (nullable = true)
+ |-- difp_ARRIS_Group_Scaled: double (nullable = true)
+ |-- difp_Cisco_Systems_Inc_Scaled: double (nullable = true)
+ |-- difp_Technicolor_Scaled: double (nullable = true)
+ |-- ComunaIndex_Scaled: double (nullable = true)
+ |-- geoIndex_Scaled: double (nullable = true)
+ |-- FabIndex_Scaled: double (nullable = true)
+ |-- Zona_Censal_Scaled: double (nullable = true)
+ |-- Manzana_Censal_Scaled: double (nullable = true)
+
+Wifi hotspot where Cisco will not be in the next period 199.0
 The predictions are [0. 1. 0. ... 0. 0. 0.]
 LightGBM Model accuracy score: 1.0000
+Confusion Matrix
+ [[3921    0]
+ [   0  199]]
+Training set score: 1.0000
+Test set score: 1.0000
