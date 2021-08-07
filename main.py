@@ -10,6 +10,7 @@ from pyspark.ml import Pipeline
 from pyspark.sql.types import DoubleType
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 import lightgbm as lgb
 
 findspark.init()  # Con este no me tira error de JVM.
@@ -23,7 +24,7 @@ def context():
     conf = SparkConf().setMaster('local').setAppName('Tarea Analisis de'
                                                      'BigData')
 
-    # Starting Spark Cluster.
+    # Starting Spark Context.
     sc = SparkContext.getOrCreate(conf=conf)
 
     # Starting SqlContext from sc.
@@ -702,12 +703,20 @@ def LightGBM(final_df):
     # Predict the results
     y_pred = clf.predict(X_test)
     Sum = sum(y_pred)
-    print('Wifi hotspot difference for next Year', Sum)
+    print('Wifi hotspot where Cisco will not be in the next period', Sum)
     print('The predictions are', y_pred)
 
     # View accuracy
     print('LightGBM Model accuracy score: {0:0.4f}'.format(accuracy_score
                                                            (y_test, y_pred)))
+
+    # Confusion Matrix.
+    cm = confusion_matrix(y_test, y_pred)
+    print('Confusion Matrix\n', cm)
+
+    # print the scores on training and test set
+    print('Training set score: {:.4f}'.format(clf.score(X_train, y_train)))
+    print('Test set score: {:.4f}'.format(clf.score(X_test, y_test)))
 
 
 LightGBM(final_df)
