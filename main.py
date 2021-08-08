@@ -39,11 +39,9 @@ FilePath = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data'
 
 def open_files(sqlContext, FilePath):
     """Opening files.
-
     Args:
         sqlContext (Context): Pyspark environment.
         FilePath (String): Path where the files are.
-
     Returns:
         Spark dataframe: Spark dataframes of 2017, 2018 and 2019.
     """
@@ -66,7 +64,6 @@ df_2017, df_2018, df_2019 = open_files(sqlContext, FilePath)
 
 def clean_2017(df_2017):
     """Cleaning 2017.
-
     Args:
         df_2017 (Spark dataframe): Spark dataframe than contain 2017.
     """
@@ -88,12 +85,10 @@ print('==============')
 
 def union_original_df(df_2017, df_2018, df_2019):
     """Applying union to all df's.
-
     Args:
         df_2017 (Spark dataframe): It's contain data regarding 2017.
         df_2018 (Spark dataframe): It's contain data regarding 2018.
         df_2019 (Spark dataframe): It's contain data regarding 2019.
-
     Returns:
         Spark dataframe: Union between above df's.
     """
@@ -109,10 +104,8 @@ df_unidos = union_original_df(df_2017, df_2018, df_2019)
 
 def santiago_only(df_unidos):
     """It's get only Santiago city from dataset.
-
     Args:
         df_unidos (Spark dataframe): It's contain all data.
-
     Returns:
         Spark Dataframe: Spark dataframe that only contain Santiago.
     """
@@ -128,11 +121,9 @@ f1_fabricante = santiago_only(df_unidos)
 
 def mac_maker(f1_fabricante):
     """It's create two new columns with Id_fabricante and Media_mac.
-
     Args:
         f1_fabricante (Spark dataframe): Spark dataframe that only contain
         Santiago.
-
     Returns:
         Spark dataframe: Spark dataframe than contain in two separated columns
         the Id_fabricante and Media_mac
@@ -156,7 +147,6 @@ oui_path = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/data/oui.txt'
 
 def dict_maker_id():
     """It's generate a dictionary that contains the id and the makers names.
-
     Returns:
         Dictionary: It's contain the id and the makers name.
     """
@@ -177,7 +167,6 @@ csv_path = '/home/rafa/Dropbox/Linux_MDS/BDAnalytics/sprint1/oui.csv'
 
 def to_csv(dict_vendor_id):
     """Converting dictionary to csv.
-
     Args:
         dict_vendor_id (Dictionary): It's contain the vendor id and the name.
     """
@@ -191,10 +180,8 @@ to_csv(dict_vendor_id)
 
 def oui_dataframe(sqlContext):
     """It's create the oui spark dataframe
-
     Args:
         sqlContext (context): Pyspark environment.
-
     Returns:
         Spark dataframe: It's contain the id and the name of the makers.
     """
@@ -236,14 +223,12 @@ print('==============')
 
 def future_georef(sqlContext, f1_fabricante, df_oui, Manzana_Precensal):
     """It's get the geo future.
-
     Args:
         sqlContext (context): Pyspark environment
         f1_fabricante (Spark dataframe): Spark dataframe that only contain
         Santiago.
         df_oui (Dataframe): It's contain the Id_fabricante and the name.
         Manzana_Precensal (Shape file): Georeference dataframe.
-
     Returns:
         Spark dataframe: Spark dataframe that contain the geo future.
     """
@@ -300,12 +285,10 @@ df_union2 = future_georef(sqlContext, f1_fabricante, df_oui,
 def quantity_proportion(sqlContext, f1_georeferencia):
     """It's get the quantity and proportion of all wifi makers plus the above
     future.
-
     Args:
         sqlContext (context): Pyspark environment.
         f1_georeferencia (Spark dataframe): Spark dataframe that contain the
         geo future.
-
     Returns:
         Spark dataframe: Spark dataframe that contain the geo future plus the
         above future.
@@ -363,7 +346,6 @@ print('==============')
 def eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante, df_oui,
              Manzana_Precensal, future_georef, lamba_rellenar):
     """Get the features for sprint 2.
-
     Args:
         sqlContext (Context): Pyspark environment.
         df_2018 (Spark dataframe): It's contain 2018 info.
@@ -375,7 +357,6 @@ def eighteen(sqlContext, df_2018, solo_santiago, mac_y_fabricante, df_oui,
         future_georef (Function): It's create the future with the geo.
         lamba_rellenar (Function): It's get the quantity and proportion of
         all wifi makers plus the above future.
-
     Returns:
         Spark dataframe: It's contain all features for sprint 2.
     """
@@ -409,7 +390,6 @@ print('==============')
 def nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante, df_oui,
              Manzana_Precensal, future_georef, lamba_rellenar, f2_2018):
     """Get the features for sprint 2.
-
     Args:
         sqlContext (Context): Pyspark environment.
         df_2019 (Spark dataframe): It's contain 2019 info.
@@ -421,7 +401,6 @@ def nineteen(sqlContext, df_2019, solo_santiago, mac_y_fabricante, df_oui,
         future_georef (Function): It's create the future with the geo.
         lamba_rellenar (Function): It's get the quantity and proportion of
         all wifi makers plus the above future.
-
     Returns:
         Spark dataframe: It's contain all features for sprint 2.
     """
@@ -456,12 +435,10 @@ f2_2019 = nineteen(sqlContext, df_2019, santiago_only, mac_maker,
 def differences(sqlContext, f2_2018, f2_2019):
     """It's create the future for differences between 2018 and 2019 regarding
     quantity and proportion.
-
     Args:
         sqlContext (context): Pyspark environment.
         f2_2018 (Spark dataframe): It's contain all 2018 with above features
         f2_2019 (Spark dataframe): It's contain all 2019 with above features.
-
     Returns:
     Spark dataframe: Spark dataframe that contain features before differences
     between years.
@@ -662,7 +639,6 @@ final_df.printSchema()
 
 def LightGBM(final_df):
     """Applying LightGBM.
-
     Args:
         final_df (Spark Dataframe): Final Tableu.
     """
