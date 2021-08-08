@@ -657,6 +657,7 @@ final_df.printSchema()
 
 # Applying LightGBM
 # Dependant variable = 'difq_Cisco_Systems_Inc_Scaled'
+# The data it is very unbalanced
 
 
 def LightGBM(final_df):
