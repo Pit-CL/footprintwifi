@@ -52,7 +52,6 @@ Los resultados pueden ser observados en el archivo [out.txt](https://github.com/
 
 Luego de haber obtenido estas diferencias, se procede a escalar e indexar aquellas variables en donde es necesario realizarlo y se obtiene el siguiente dataframe  con  el siguiente esquema.
 
-El esquema del df final del sprint 3 es el siquiente:
 ![Esquema final sprint 3](https://paper-attachments.dropbox.com/s_AC07C0A7F1F5752FBA703741F29DC6B9C70179F9AC0AD118046E81A926798E35_1629052987692_image.png)
 
 
