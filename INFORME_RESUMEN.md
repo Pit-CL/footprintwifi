@@ -27,14 +27,15 @@ Para el sprint 2 se tiene que trabajar los archivos que vienen en diferentes for
 La idea de este sprint es obtener un dataframe spark que contenga las cantidades de hotspot de los fabricantes, diferencia promedio entre un período y el siguiente;  al mismo tiempo que su código, nombre y punto geográfico.
 
 
+El df que contiene el nombre del fabricante es el siguiente:
 ![Fabricante](https://paper-attachments.dropbox.com/s_AC07C0A7F1F5752FBA703741F29DC6B9C70179F9AC0AD118046E81A926798E35_1629052580817_image.png)
 
 
-
+El df que contiene la información geográfica es el siguiente:
 ![Ubicación geográfica.](https://paper-attachments.dropbox.com/s_AC07C0A7F1F5752FBA703741F29DC6B9C70179F9AC0AD118046E81A926798E35_1629052595952_image.png)
 
 
-
+El df que contiene las diferencias es el siguiente:
 ![Diferencias.](https://paper-attachments.dropbox.com/s_AC07C0A7F1F5752FBA703741F29DC6B9C70179F9AC0AD118046E81A926798E35_1629052606434_image.png)
 
 
@@ -51,7 +52,7 @@ Los resultados pueden ser observados en el archivo [out.txt](https://github.com/
 
 Luego de haber obtenido estas diferencias, se procede a escalar e indexar aquellas variables en donde es necesario realizarlo y se obtiene el siguiente dataframe  con  el siguiente esquema.
 
-
+El esquema del df final del sprint 3 es el siquiente:
 ![Esquema final sprint 3](https://paper-attachments.dropbox.com/s_AC07C0A7F1F5752FBA703741F29DC6B9C70179F9AC0AD118046E81A926798E35_1629052987692_image.png)
 
 
@@ -62,13 +63,10 @@ Para el sprint 4 se tuvo principalmente problemas de memoria al ejecutar XGboost
 
 El dataframe que ingresó al modelo LightGBM es el siguiente
 
-
 ![Dataframe que ingresa al modelo](https://paper-attachments.dropbox.com/s_AC07C0A7F1F5752FBA703741F29DC6B9C70179F9AC0AD118046E81A926798E35_1629053225355_image.png)
 
 
 Y los resultados obtenidos del modelo LightGBM son los siguientes:
-
-
 ![Resultado final del modelo LightGBM.](https://paper-attachments.dropbox.com/s_AC07C0A7F1F5752FBA703741F29DC6B9C70179F9AC0AD118046E81A926798E35_1629053251321_image.png)
 
 
